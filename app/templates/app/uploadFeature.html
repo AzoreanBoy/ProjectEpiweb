@@ -1,0 +1,86 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block content %}
+    <!--<nav class="relative container mx-auto px-6 py-2 border-b-slate-900/10 border-b-2 border-x-0">
+    <div class="flex items-center justify-between">
+      <a href="{% url 'index' %}" class="text-5xl text-slate-800 font-bold font-mono">EPIWEB</a>
+      <div class="flex flex-row justify-between">
+        <p class="flex self-center text-slate-900 font-bold">{{ request.user }} |</p>
+        <div onclick="openNotFunction('notpanel')" class="self-center px-6 stroke-2 stroke-slate-900 hover:stroke-blue-600 hover:cursor-pointer transition-all">
+          <svg id="bell" class="h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+          </svg>
+        </div>
+        {% comment %}button{% endcomment %}
+        <a href="{% url 'logoutUser' %}" class="flex rounded-xl p-2 w-fit text-slate-900 font-bold ring-4 ring-white hover:bg-slate-800 hover:text-blue-600 hover:ring-blue-600 hover:shadow-sm transition-all">Logout</a>
+      </div>
+    </div>
+  </nav>-->
+    {% include 'app/nav1.html' %}
+    <nav class="container w-full mx-auto my-1">
+        <ol class="flex text-xs font-bold">
+            <li>
+                <a href="{% url 'index' %}"
+                   class="align-middle text-slate-800 hover:drop-shadow-lg transition-all">Home</a>
+            </li>
+            <li>
+                <span class="text-sm text-slate-800 mx-2">&gt;</span>
+            </li>
+            <li class="align-middle font-normal text-slate-500">Upload Features</li>
+        </ol>
+    </nav>
+    <section class="container relative mx-auto mb-20 grid grid-cols-3">
+        <div class="flex flex-col mt-8 mx-6 col-span-1 border-r-4 border-blue-600">
+            <h1 class="font-bold text-xl text-gray-700">Upload your feature</h1>
+            <form method="POST" name="uploadFeature" class="px-8 pt-6 pb-8 -mb-3"
+                  enctype="multipart/form-data">
+                {% csrf_token %}
+                <!-- nome -->
+                <label for="featurename" class="block font-bold mb-2">Name</label>
+                <!--<input type="text" placeholder="Feature Name" name="featurename"
+                class="shadow appearance-none rounded mb-8" id="featurename">-->
+                {{ form.name }}
+
+                <!-- nome da funcao -->
+                <label for="function_name" class="block font-bold mb-2">Function Name</label>
+                <!--<input type="text" placeholder="Function Name" name="function_name"
+                class="shadow appearance-none rounded mb-8" id="function_name">-->
+                {{ form.function_name }}
+
+                <!-- Type of feature - Univariate or Multivariate -->
+                <label for="type" class="block font-bold mb-2">Type</label>
+                {{ form.type }}
+
+                <!-- Descrição -->
+                <label for="type" class="block font-bold mb-2">Description</label>
+                {{ form.description }}
+
+                <!-- ficheiro -->
+                <label for="function_name" class="block font-bold mb-2">File (.py)</label>
+                <!--<input type="file" placeholder="Function Name" name="function_name"
+                class="shadow appearance-none rounded flex align-middle" id="function_name"
+                >-->
+                {{ form.file }}
+
+                <!--Upload Button-->
+                <div class="mt-8 flex justify-center">
+                    <button type="submit"
+                            class="flex rounded-xl py-1 px-10 w-fit text-slate-900 font-bold ring-2 ring-slate-300  hover:bg-slate-800 hover:text-blue-600 hover:ring-blue-600 hover:shadow-sm transition-all">
+                        Upload
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="col-span-2 grid-cols-3">
+            <h1 class="text-right text-blue-600 text-lg first-letter:absolute">Feature Definition</h1>
+            <div class="text-right">
+            {% lorem 10 p %}
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block scripts %}
+{% endblock scripts %}
+
+

@@ -1,0 +1,1537 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block title %}Extraction Study {{ study.study.idstudy }}{% endblock %}
+{% block content %}
+    {# NAVBAR #}
+    <nav class="relative container mx-auto px-6 py-2 border-b-slate-900/10 border-b-2 border-x-0" >
+        <div class="flex items-center justify-between" >
+            <a href="{% url 'index' %}"
+               class="text-5xl text-slate-800 font-bold font-mono" >EPIWEB</a >
+            {% comment %} <div class="flex flex-row space-x-10 items-center text-slate-400 font-bold py-1 px-2">
+                <a href="#" class="hover:text-blue-600 hover:drop-shadow-lg transition-all">Home</a>
+                <a href="#" class="hover:text-blue-600 hover:drop-shadow-lg transition-all">Raw Data</a>
+                <a href="#" class="hover:text-blue-600 hover:drop-shadow-lg transition-all">Studies</a>
+                <a href="#" class="hover:text-blue-600 hover:drop-shadow-lg transition-all">Results</a>
+            </div> {% endcomment %}
+            <div class="flex flex-row justify-between" >
+                <p class="flex self-center text-slate-900 font-bold" >{{ request.user }} |</p >
+                <div onclick="openNotFunction('notpanel')"
+                     class="self-center px-6 stroke-2 stroke-slate-900 hover:stroke-blue-600 hover:cursor-pointer transition-all" >
+                    <svg id="bell" class="h-6 w-6" fill="none" viewBox="0 0 24 24" >
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                    </svg >
+                </div >
+                {% comment %} button {% endcomment %}
+                <a href="{% url 'logoutUser' %}"
+                   class="flex rounded-xl p-2 w-fit text-slate-900 font-bold ring-4 ring-white hover:bg-slate-800 hover:text-blue-600 hover:ring-blue-600 hover:shadow-sm transition-all" >Logout</a >
+            </div >
+        </div >
+    </nav >
+    <nav class="container w-full mx-auto my-1" >
+        <ol class="flex text-xs font-bold" >
+            <li >
+                <a href="{% url 'index' %}"
+                   class="align-middle text-slate-800 hover:drop-shadow-lg transition-all" >Home</a >
+            </li >
+            <li >
+                <span class="text-sm text-slate-800 mx-2" >&gt;</span >
+            </li >
+            <li >
+                <a href="{% url 'datav2' 'studies' %}"
+                   class="align-middle text-slate-800 hover:drop-shadow-lg transition-all" >Studies</a >
+            </li >
+            <li >
+                <span class="text-sm text-slate-800 mx-2" >&gt;</span >
+            </li >
+            <li class="align-middle font-normal text-slate-500" >Extraction Study {{ study.study.idstudy }}</li >
+        </ol >
+    </nav >
+    <section class="container relative flex flex-row w-full mx-auto mt-8" >
+        {# MAIN SECTION #}
+        <div class="flex flex-col w-[73%] mx-auto" >
+            {# TOP INFOS #}
+            <div class="grid grid-cols-3 gap-2 w-full rounded-lg mb-2 shadow-lg ring-4 ring-blue-600 bg-slate-800 text-white text-sm py-2 px-4" >
+                <p class="font-bold" >Feature Extraction Study</p >
+                <p class="col-start-1 text-xl text-blue-600 font-bold ml-7 my-auto" >{{ study.study.name }}</p >
+                <div class="grid grid-cols-2 gap-6" >
+                    <p class="font-bold text-end text-slate-400" >Created by</p >
+                    <p class="font-bold text-star" >{{ study.study.user.username }}</p >
+                </div >
+                <div class="grid grid-cols-2 gap-6" >
+                    <p class="font-bold text-end text-slate-400" >Date</p >
+                    <p class="font-bold text-start" >{{ study.study.datestudy }}</p >
+                </div >
+                <div class="grid grid-cols-2 gap-6" >
+                    <p class="font-bold text-end text-slate-400" >Patient</p >
+                    <a href="{% url 'patient' 8902 %}" target="_blank" rel="noopener noreferrer"
+                       class="flex flex-row font-bold text-start underline decoration-2 decoration-white hover:text-blue-600 transition-all" >
+                        8902
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="1.5"
+                             stroke="currentColor"
+                             class="w-4 h-4 ml-0.5 my-auto" >
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                        </svg >
+                    </a >
+                </div >
+                <div class="grid grid-cols-2 gap-6" >
+                    <p class="font-bold text-end text-slate-400" >Type of study</p >
+                    <div class="flex flex-row" >
+                        <div class="rounded-full w-5 h-3 bg-sky-500 mr-2 my-auto" ></div >
+                        <p class="font-bold text-start" >{{ study.study.type }}</p >
+                    </div >
+                </div >
+                <div class="grid grid-cols-2 gap-6" >
+                    <p class="font-bold text-end text-slate-400" >Completed?</p >
+                    <div class="flex flex-row" >
+                        {% if study.study.completed == True %}
+                            <div class="rounded-full w-3 h-3 bg-green-600 mr-2 my-auto" ></div >
+                            <p class="font-bold text-start" >{{ study.study.completed }}</p >
+                        {% else %}
+                            <div class="rounded-full w-3 h-3 bg-red-600 mr-2 my-auto" ></div >
+                            <p class="font-bold text-start" >{{ study.study.completed }}</p >
+                        {% endif %}
+                    </div >
+                </div >
+            </div >
+            {# EDIT BUTTON #}
+            {% if study.study.completed == True %}
+                <div class="my-2 px-4" >
+                    <button id="openEdit"
+                            class="group flex flex-row ml-auto space-x-2 w-fit h-fit rounded-lg p-1 bg-slate-900/5 ring-4 ring-slate-900/10 shadow-lg hover:bg-slate-900 hover:ring-blue-600 transition-all" >
+                        <p class="text-sm text-slate-900 group-hover:text-white font-bold" >Edit</p >
+                        <svg class="h-4 w-4 my-auto stroke-blue-600 group-hover:stroke-white stroke-2"
+                             fill="none"
+                             viewBox="0 0 24 24" >
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                        </svg >
+                    </button >
+                </div >
+            {% else %}
+                <div class="my-2 px-4" >
+                    <button id="openEdit"
+                            class="flex flex-row ml-auto space-x-2 w-fit h-fit rounded-lg p-1 bg-slate-900/5 ring-4 ring-slate-900/10 shadow-lg cursor-not-allowed transition-all disabled" >
+                        <p class="text-sm text-slate-900 font-bold" >Edit</p >
+                        <svg class="h-4 w-4 my-auto stroke-blue-600 stroke-2"
+                             fill="none"
+                             viewBox="0 0 24 24" >
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                        </svg >
+                    </button >
+                </div >
+            {% endif %}
+            {# EXTRACTION OPTIONS #}
+            <div class="flex flex-col w-full mb-6 py-2 px-4" >
+                <p class="font-bold text-slate-800" >Extraction Options</p >
+                <div class="grid grid-cols-2 gap-6 py-3" >
+                    <p class="text-slate-700 text-end" >Channels</p >
+                    <div class="flex flex-row space-x-2 overflow-x-auto" >
+                        {% for c in channels %}
+                            <p class="font-bold text-start" > {{ c }}</p >
+                            {% if not forloop.last %}
+                                <p >|</p >
+                            {% endif %}
+                        {% endfor %}
+                    </div >
+                    <p class="text-slate-700 text-end overflow-x-auto" >Features</p >
+                    <div class="flex flex-row space-x-2" >
+                        {% for f in feats %}
+                            <p class="font-bold text-start" > {{ f }}</p >
+                            {% if not forloop.last %}
+                                <p >|</p >
+                            {% endif %}
+                        {% endfor %}
+                    </div >
+                    <p class="text-slate-700 text-end" >Filter</p >
+                    <p class="font-bold text-start" >{{ study.filter }}</p >
+                    {% if study.filter != 'none' %}
+                        <p class="text-slate-700 text-end" >Filter Cut-off Frequency </p >
+                        <p class="font-bold text-start" >{{ filteroptions.0 }} Hz</p >
+                        <p class="text-slate-700 text-end" >Filter Cut-off Order </p >
+                        <p class="font-bold text-start" >{{ filteroptions.1 }}</p >
+                    {% endif %}
+                    <p class="text-slate-700 text-end" >Window Size</p >
+                    <p class="font-bold text-start" >{{ study.windowsize }} seconds</p >
+                    <p class="text-slate-700 text-end" >Window Step</p >
+                    <p class="font-bold text-start" >{{ study.windowstep }} seconds</p >
+                    {% if study.windowsize > study.windowstep %}
+                        <p class="text-slate-700 text-end" >Window Overlapping</p >
+                        <p class="font-bold text-start" >True</p >
+                        {% comment %} <p></p><p class="font-bold text-red-700 text-start text-xs">Windowing Overlapping? &nbsp &nbsp &nbsp True</p> {% endcomment %}
+                    {% endif %}
+                </div >
+            </div >
+            <hr class="w-full mx-auto m-6 h-1 bg-slate-800/5" />
+            {# RESULTS #}
+            <div class="flex flex-col w-full my-2 py-2 px-4" >
+                <p class="font-bold text-slate-800" >Results</p >
+                <div class="grid grid-cols-2 gap-6 py-3" >
+                    <p class="text-slate-700 text-end" >Number of Samples</p >
+                    <p class="font-bold text-start" >{{ nsamples }}</p >
+                    <p class="text-slate-700 text-end" >Number of Features</p >
+                    <p class="font-bold text-start" >{{ nfeats }}</p >
+                </div >
+            </div >
+            <hr class="w-full mx-auto m-6 h-1 bg-slate-800/5" />
+            {# PREVIOUS STUDIES #}
+            <div class="flex flex-col w-full my-2 py-2 px-4" >
+                <p class="font-bold text-slate-800" >Studies</p >
+                <div class="flex flex-row font-bold text-xs text-slate-900 mt-4" >
+                    <button id="btnCheckedNormalization"
+                            class="bg-white h-fit mr-6 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5 cursor-default" >
+                        <p class="border-b-2 border-blue-600 w-fit" >Normalization</p >
+                    </button >
+                    <button id="btnNotCheckedNormalization"
+                            class="hidden group bg-white h-fit mr-6 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                        <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >
+                            Normalization
+                        </p >
+                    </button >
+                    <button id="btnCheckedSelection"
+                            class="hidden bg-white h-fit mr-6 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5 cursor-default" >
+                        <p class="border-b-2 border-blue-600 w-fit" >Feature Selection/Reduction</p >
+                    </button >
+                    <button id="btnNotCheckedSelection"
+                            class="group bg-white h-fit mr-6 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                        <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >
+                            Feature Selection/Reduction
+                        </p >
+                    </button >
+                    <button id="btnCheckedClassification"
+                            class="hidden bg-white h-fit mr-6 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5 cursor-default" >
+                        <p class="border-b-2 border-blue-600 w-fit" >
+                            Classification
+                        </p >
+                    </button >
+                    <button id="btnNotCheckedClassification"
+                            class="group bg-white h-fit mr-6 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                        <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >
+                            Classification
+                        </p >
+                    </button >
+                </div >
+                <div id="contentNormalization" class="my-4" >
+                    {% if normstudies %}
+                        <div class="relative overflow-x-auto rounded-lg ring-4 ring-slate-900/5 mt-5 shadow-lg" >
+                            <table id="selTable" class="w-full text-sm text-left text-slate-500" >
+                                <thead class="text-slate-700 uppercase bg-slate-900/5" >
+                                <tr >
+                                    <th scope="col" class="px-3 py-3 text-xs" >
+                                        Study Name
+                                    </th >
+                                    <th scope="col" class="px-3 py-3 text-xs" >
+                                        <div class="flex items-center" >
+                                            Researcher Username
+                                            <span onclick="sortTable(0, 'sel')" ><svg xmlns="http://www.w3.org/2000/svg"
+                                                                                      class="w-3 h-3 ml-1 hover:cursor-pointer"
+                                                                                      aria-hidden="true"
+                                                                                      fill="currentColor"
+                                                                                      viewBox="0 0 320 512" ><path
+                                                    d="M27.66 224h264.7c24.6 0 36.89-29.78 19.54-47.12l-132.3-136.8c-5.406-5.406-12.47-8.107-19.53-8.107c-7.055 0-14.09 2.701-19.45 8.107L8.119 176.9C-9.229 194.2 3.055 224 27.66 224zM292.3 288H27.66c-24.6 0-36.89 29.77-19.54 47.12l132.5 136.8C145.9 477.3 152.1 480 160 480c7.053 0 14.12-2.703 19.53-8.109l132.3-136.8C329.2 317.8 316.9 288 292.3 288z" /></svg ></span >
+                                        </div >
+                                    </th >
+                                    <th scope="col" class="px-3 py-3 text-xs" >
+                                        <div class="flex items-center" >
+                                            Date
+                                            <span onclick="sortTable(1, 'sel')" ><svg xmlns="http://www.w3.org/2000/svg"
+                                                                                      class="w-3 h-3 ml-1 hover:cursor-pointer"
+                                                                                      aria-hidden="true"
+                                                                                      fill="currentColor"
+                                                                                      viewBox="0 0 320 512" ><path
+                                                    d="M27.66 224h264.7c24.6 0 36.89-29.78 19.54-47.12l-132.3-136.8c-5.406-5.406-12.47-8.107-19.53-8.107c-7.055 0-14.09 2.701-19.45 8.107L8.119 176.9C-9.229 194.2 3.055 224 27.66 224zM292.3 288H27.66c-24.6 0-36.89 29.77-19.54 47.12l132.5 136.8C145.9 477.3 152.1 480 160 480c7.053 0 14.12-2.703 19.53-8.109l132.3-136.8C329.2 317.8 316.9 288 292.3 288z" /></svg ></span >
+                                        </div >
+                                    </th >
+                                    <th scope="col" class="px-3 py-3 text-xs" >
+                                        <span class="sr-only" >More Details</span >
+                                    </th >
+                                </tr >
+                                </thead >
+                                <tbody >
+                                {% for s in normstudies %}
+                                    <tr id="{{ forloop.counter0 }}row" class="bg-white border-b" >
+                                        <th scope="row" class="px-3 py-4 font-bold text-slate-900 whitespace-nowrap" >
+                                            {{ s.study.name }}
+                                        </th >
+                                        <td class="px-3 py-4" >
+                                            {{ s.study.user.username }}
+                                        </td >
+                                        <td class="px-3 py-4" >
+                                            {{ s.study.datestudy }}
+                                        </td >
+                                        <td class="px-3 py-4 text-center" >
+                                            <a href="{% url 'normalizationStudy' s.study.idstudy %}"
+                                               class="font-bold text-blue-600 rounded-md -m-2 p-2 ring-4 ring-white hover:drop-shadow-lg hover:bg-slate-800 hover:ring-blue-600 transition-all" >more
+                                                details</a >
+                                        </td >
+                                    </tr >
+                                {% endfor %}
+                                </tbody >
+                            </table >
+                        </div >
+                    {% else %}
+                        <p class="font-bold text-sm text-slate-700 m-8" >Nothing to show. Click <a
+                                href="{% url 'createNormalizationStudy' study.study.idstudy %}"
+                                class="text-blue-600 hover:text-base transition-all" >here</a > to create a study.</p >
+                    {% endif %}
+                </div >
+                <div id="contentSelection" class="hidden my-4" >
+                    {% if selectionstudies %}
+                        <div class="relative overflow-x-auto rounded-lg ring-4 ring-slate-900/5 mt-5 shadow-lg" >
+                            <table id="selTable" class="w-full text-sm text-left text-slate-500" >
+                                <thead class="text-slate-700 uppercase bg-slate-900/5" >
+                                <tr >
+                                    <th scope="col" class="px-3 py-3 text-xs" >
+                                        Study Name
+                                    </th >
+                                    <th scope="col" class="px-3 py-3 text-xs" >
+                                        <div class="flex items-center" >
+                                            Researcher Username
+                                            <span onclick="sortTable(0, 'sel')" ><svg xmlns="http://www.w3.org/2000/svg"
+                                                                                      class="w-3 h-3 ml-1 hover:cursor-pointer"
+                                                                                      aria-hidden="true"
+                                                                                      fill="currentColor"
+                                                                                      viewBox="0 0 320 512" ><path
+                                                    d="M27.66 224h264.7c24.6 0 36.89-29.78 19.54-47.12l-132.3-136.8c-5.406-5.406-12.47-8.107-19.53-8.107c-7.055 0-14.09 2.701-19.45 8.107L8.119 176.9C-9.229 194.2 3.055 224 27.66 224zM292.3 288H27.66c-24.6 0-36.89 29.77-19.54 47.12l132.5 136.8C145.9 477.3 152.1 480 160 480c7.053 0 14.12-2.703 19.53-8.109l132.3-136.8C329.2 317.8 316.9 288 292.3 288z" /></svg ></span >
+                                        </div >
+                                    </th >
+                                    <th scope="col" class="px-3 py-3 text-xs" >
+                                        <div class="flex items-center" >
+                                            Date
+                                            <span onclick="sortTable(1, 'sel')" ><svg xmlns="http://www.w3.org/2000/svg"
+                                                                                      class="w-3 h-3 ml-1 hover:cursor-pointer"
+                                                                                      aria-hidden="true"
+                                                                                      fill="currentColor"
+                                                                                      viewBox="0 0 320 512" ><path
+                                                    d="M27.66 224h264.7c24.6 0 36.89-29.78 19.54-47.12l-132.3-136.8c-5.406-5.406-12.47-8.107-19.53-8.107c-7.055 0-14.09 2.701-19.45 8.107L8.119 176.9C-9.229 194.2 3.055 224 27.66 224zM292.3 288H27.66c-24.6 0-36.89 29.77-19.54 47.12l132.5 136.8C145.9 477.3 152.1 480 160 480c7.053 0 14.12-2.703 19.53-8.109l132.3-136.8C329.2 317.8 316.9 288 292.3 288z" /></svg ></span >
+                                        </div >
+                                    </th >
+                                    <th scope="col" class="px-3 py-3 text-xs" >
+                                        <span class="sr-only" >More Details</span >
+                                    </th >
+                                </tr >
+                                </thead >
+                                <tbody >
+                                {% for s in selectionstudies %}
+                                    <tr id="{{ forloop.counter0 }}row" class="bg-white border-b" >
+                                        <th scope="row" class="px-3 py-4 font-bold text-slate-900 whitespace-nowrap" >
+                                            {{ s.study.name }}
+                                        </th >
+                                        <td class="px-3 py-4" >
+                                            {{ s.study.user.username }}
+                                        </td >
+                                        <td class="px-3 py-4" >
+                                            {{ s.study.datestudy }}
+                                        </td >
+                                        <td class="px-3 py-4 text-center" >
+                                            <a href="{% url 'selredStudy' s.study.idstudy %}"
+                                               class="font-bold text-blue-600 rounded-md -m-2 p-2 ring-4 ring-white hover:drop-shadow-lg hover:bg-slate-800 hover:ring-blue-600 transition-all" >more
+                                                details</a >
+                                        </td >
+                                    </tr >
+                                {% endfor %}
+                                </tbody >
+                            </table >
+                        </div >
+                    {% else %}
+                        <p class="font-bold text-sm text-slate-700 m-8" >Nothing to show. Click <a
+                                href="{% url 'createStudySelRed' study.study.idstudy %}"
+                                class="text-blue-600 hover:text-base transition-all" >here</a > to create a study.</p >
+                    {% endif %}
+                </div >
+                <div id="contentClassification" class="hidden my-4" >
+                    {% if classificationstudies %}
+                        <div class="relative overflow-x-auto rounded-lg ring-4 ring-slate-900/5 mt-5 shadow-lg" >
+                            <table id="classTable" class="w-full text-sm text-left text-slate-500" >
+                                <thead class="text-slate-700 uppercase bg-slate-900/5" >
+                                <tr >
+                                    <th scope="col" class="px-3 py-3 text-xs" >
+                                        Study Name
+                                    </th >
+                                    <th scope="col" class="px-3 py-3 text-xs" >
+                                        <div class="flex items-center" >
+                                            Researcher Username
+                                            <span onclick="sortTable(0, 'class')" ><svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    class="w-3 h-3 ml-1 hover:cursor-pointer" aria-hidden="true"
+                                                    fill="currentColor" viewBox="0 0 320 512" ><path
+                                                    d="M27.66 224h264.7c24.6 0 36.89-29.78 19.54-47.12l-132.3-136.8c-5.406-5.406-12.47-8.107-19.53-8.107c-7.055 0-14.09 2.701-19.45 8.107L8.119 176.9C-9.229 194.2 3.055 224 27.66 224zM292.3 288H27.66c-24.6 0-36.89 29.77-19.54 47.12l132.5 136.8C145.9 477.3 152.1 480 160 480c7.053 0 14.12-2.703 19.53-8.109l132.3-136.8C329.2 317.8 316.9 288 292.3 288z" /></svg ></span >
+                                        </div >
+                                    </th >
+                                    <th scope="col" class="px-3 py-3 text-xs" >
+                                        <div class="flex items-center" >
+                                            Date
+                                            <span onclick="sortTable(1, 'class')" ><svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    class="w-3 h-3 ml-1 hover:cursor-pointer" aria-hidden="true"
+                                                    fill="currentColor" viewBox="0 0 320 512" ><path
+                                                    d="M27.66 224h264.7c24.6 0 36.89-29.78 19.54-47.12l-132.3-136.8c-5.406-5.406-12.47-8.107-19.53-8.107c-7.055 0-14.09 2.701-19.45 8.107L8.119 176.9C-9.229 194.2 3.055 224 27.66 224zM292.3 288H27.66c-24.6 0-36.89 29.77-19.54 47.12l132.5 136.8C145.9 477.3 152.1 480 160 480c7.053 0 14.12-2.703 19.53-8.109l132.3-136.8C329.2 317.8 316.9 288 292.3 288z" /></svg ></span >
+                                        </div >
+                                    </th >
+                                    <th scope="col" class="px-3 py-3 text-xs" >
+                                        <span class="sr-only" >More Details</span >
+                                    </th >
+                                </tr >
+                                </thead >
+                                <tbody >
+                                {% for s in classificationstudies %}
+                                    <tr id="{{ forloop.counter0 }}row" class="bg-white border-b" >
+                                        <th scope="row" class="px-3 py-4 font-bold text-slate-900 whitespace-nowrap" >
+                                            {{ s.study.name }}
+                                        </th >
+                                        <td class="px-3 py-4" >
+                                            {{ s.study.user.username }}
+                                        </td >
+                                        <td class="px-3 py-4" >
+                                            {{ s.study.datestudy }}
+                                        </td >
+                                        <td class="px-3 py-4 text-center" >
+                                            <a href="{% url 'classificationStudy' s.study.idstudy %}"
+                                               class="font-bold text-blue-600 rounded-md -m-2 p-2 ring-4 ring-white hover:drop-shadow-lg hover:bg-slate-800 hover:ring-blue-600 transition-all" >more
+                                                details</a >
+                                        </td >
+                                    </tr >
+                                {% endfor %}
+                                </tbody >
+                            </table >
+                        </div >
+                    {% else %}
+                        <p class="font-bold text-sm text-slate-700 m-8" >Nothing to show. Click <a
+                                href="{% url 'createStudyClassification' study.study.idstudy %}"
+                                class="text-blue-600 hover:text-base transition-all" >here</a > to create a study.</p >
+                    {% endif %}
+                </div >
+            </div >
+        </div >
+        {# RIGHT SECTION #}
+        <div class="flex flex-col w-1/4 mx-auto" >
+            <div class="flex flex-row mb-4 px-2 justify-between" >
+                <p class="text-xs text-slate-900 font-bold my-auto ml-auto pr-1 mr-1 border-r-2 border-slate-900 text-center" >
+                    Extraction Studies</p >
+                <div class="flex flex-row justify-end space-x-4" >
+                    <a href="{% url 'extractionStudy' previous %}"
+                       class="group flex flex-row w-[92px] p-1 mx-2 bg-slate-900/5 rounded-lg ring-4 ring-slate-900/10 font-bold text-sm shadow-lg items-center text-slate-900 hover:bg-slate-800 hover:text-white hover:ring-blue-600 transition-all" >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             class="w-5 h-5 my-auto mx-1 stroke-2 stroke-blue-600 group-hover:stroke-white" >
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M11.25 9l-3 3m0 0l3 3m-3-3h7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg >
+                        <div class="mr-auto" >
+                            Previous
+                        </div >
+                    </a >
+                    <a href="{% url 'extractionStudy' next %}"
+                       class="group flex flex-row w-[92px] p-1 mx-2 bg-slate-900/5 rounded-lg ring-4 ring-slate-900/10 font-bold text-sm shadow-lg items-center text-slate-900 hover:bg-slate-800 hover:text-white hover:ring-blue-600 transition-all" >
+                        <div class="ml-auto" >
+                            Next
+                        </div >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             class="w-5 h-5 my-auto mx-1 stroke-2 stroke-blue-600 group-hover:stroke-white" >
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M12.75 15l3-3m0 0l-3-3m3 3h-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg >
+                    </a >
+                </div >
+            </div >
+            {% if study.study.user.username == user.get_username %}
+                <hr class="w-full mx-auto m-2 h-1 bg-slate-800/5" />
+                {# SHARING BUTTON #}
+                <div class="flex flex-col w-full p-2" >
+                    <div class="flex flex-row justify-end space-x-8" >
+                        {% for message in messages %}
+                            {% if message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
+                                <div class="my-auto w-fit p-2 rounded-lg bg-slate-900/10 font-bold text-xs text-slate-700" >
+                                    <p >{{ message }}</p >
+                                </div >
+                            {% else %}
+                                <div class="my-auto w-fit p-2 rounded-lg bg-slate-900/10 font-bold text-xs text-blue-600 text-center" >
+                                    <p >{{ message }}</p >
+                                </div >
+                            {% endif %}
+                        {% endfor %}
+                        <div class="ml-auto" >
+                            <button id="openShare"
+                                    class="group flex flex-row space-x-2 m-2 w-full h-fit rounded-lg p-1 bg-slate-900/5 ring-4 ring-slate-900/10 shadow-lg mx-auto hover:bg-slate-800 hover:ring-blue-600 transition-all" >
+                                <p class="text-sm text-slate-900 group-hover:text-white font-bold" >Share</p >
+                                <svg class="h-4 w-4 my-auto stroke-blue-600 stroke-2 group-hover:stroke-white"
+                                     fill="none"
+                                     viewBox="0 0 24 24" >
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+                                </svg >
+                            </button >
+                        </div >
+                    </div >
+                    {% if sharing %}
+                        <div class="flex flex-col rounded-xl ring-2 ring-slate-900/5 shadow-lg p-2 my-2 justify-between" >
+                            <table class="w-full text-xs text-left text-slate-500" >
+                                <tbody >
+                                {% for s in sharing %}
+                                    <tr class="border-b" >
+                                        <th scope="row" class="px-4 py-0.5 font-bold text-slate-800" >
+                                            sharing with {{ s.user.username }}
+                                        </th >
+                                        <td id="pid" class="px-4" >
+                                            since {{ s.since }}
+                                        </td >
+                                    </tr >
+                                {% endfor %}
+                                </tbody >
+                            </table >
+                        </div >
+                    {% endif %}
+                </div >
+            {% endif %}
+            <hr class="w-full mx-auto m-2 h-1 bg-slate-800/5" />
+            {# COMMENTS #}
+            <div class="flex flex-col w-full p-2" >
+                <p class="font-bold text-slate-800" >Comments</p >
+                <div class="flex flex-col rounded-xl ring-2 ring-slate-900/5 shadow-lg p-2 my-2 justify-between" >
+                    <div id="commentsPanel" class="flex flex-col overflow-auto mb-2 px-1" >
+                        {% for c in comments %}
+                            <div id="comment{{ c.idcom }}" class="flex flex-col border-b text-slate-800 p-2 w-full" >
+                                <div class="flex flex-row text-slate-700 text-xs justify-between" >
+                                    <p >{{ c.user }}</p >
+                                    <p >{{ c.datecom }}</p >
+                                </div >
+                                <p class="text-sm font-bold text-justify" >{{ c.content }}</p >
+                                {% if c.user.username == user.get_username %}
+                                    <div id="delete{{ c.idcom }}" class="self-end" >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                             stroke-width="1.5"
+                                             class="w-4 h-4 stroke-red-500 hover:stroke-red-800 hover:cursor-pointer hover:w-5 hover:h-5 transition-all" >
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                        </svg >
+                                    </div >
+                                {% endif %}
+                            </div >
+                        {% endfor %}
+                    </div >
+                    <form id="commentForm" method="post" >
+                        {% csrf_token %}
+                        <div class="relative" >
+                            <input name="comment" type="text" id="myComment"
+                                   class="block py-2 pl-2 pr-10 text-sm text-slate-900 border border-slate-900/5 rounded-lg w-full focus:ring-blue-600 focus:border-blue-600"
+                                   placeholder="Write your comment" >
+                            <div id="submitComment"
+                                 class="absolute inset-y-0 right-2 flex items-center pl-3 bg-transparent text-slate-800 hover:text-slate-700 hover:cursor-pointer hover:translate-x-[1px] hover:-translate-y-[1px] transition-all" >
+                                <svg class="w-5 h-5 stroke-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                     xmlns="http://www.w3.org/2000/svg" >
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                                </svg >
+                            </div >
+                        </div >
+                    </form >
+                </div >
+            </div >
+            <hr class="w-full mx-auto m-2 h-1 bg-slate-800/5" />
+            {# NEW OPERATIONS BTNS #}
+            <div class="flex flex-col w-full p-2" >
+                {# GRAPHS #}
+                {% if study.study.completed == True %}
+                    <a href="{% url 'plotFeature' study.study.idstudy 30 0 %}"
+                       class="group block w-full mt-2 h-24 rounded-lg p-6 bg-slate-900/5 ring-4 ring-slate-900/10 shadow-lg space-y-3 mx-auto hover:bg-slate-800 hover:ring-blue-600 transition-all" >
+                        <div class="flex items-center space-x-3" >
+                            <svg class="h-7 w-7 text-blue-600 group-hover:text-white"
+                                 fill="currentColor"
+                                 viewBox="0 0 256 256" >
+                                <path d="M232,208a8,8,0,0,1-8,8H32a8,8,0,0,1-8-8V48a8,8,0,0,1,16,0v94.37L90.73,98a8,8,0,0,1,10.07-.38l58.81,44.11L218.73,90a8,8,0,1,1,10.54,12l-64,56a8,8,0,0,1-10.07.38L96.39,114.29,40,163.63V200H224A8,8,0,0,1,232,208Z" ></path >
+                            </svg >
+                            <div class="flex flex-col text-slate-900 group-hover:text-white font-bold" >
+                                <h3 >Graphical Data Analysis</h3 >
+                                <p class="text-xs" >Plot Features</p >
+                            </div >
+                        </div >
+                    </a >
+                {% endif %}
+                {% comment %} CREATE STUDIES {% endcomment %}
+                {% if study.study.completed == True %}
+                    <div
+                            class="group flex flex-col w-full mt-6 h-fit rounded-lg p-6 bg-slate-900/5 ring-4 ring-slate-900/10 shadow-lg space-y-3 mx-auto hover:bg-slate-800 hover:ring-blue-600 transition-all" >
+                        <div class="flex mb-3 items-center space-x-3" >
+                            <svg class="h-6 w-6 stroke-blue-600 group-hover:stroke-white"
+                                 fill="none"
+                                 viewBox="0 0 24 24" >
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                            </svg >
+                            <h3 class="text-slate-900 group-hover:text-white font-bold" >Create a Study using this
+                                Data</h3 >
+                        </div >
+                        <a href="{% url 'trainTestSplit' study.study.idstudy %}"
+                           class="mx-auto w-11/12 rounded-lg bg-white p-2 text-center text-slate-800 text-sm font-bold border-2 border-white hover:border-blue-600 hover:shadow-lg transition-all" >
+                            Train/Test Split
+                        </a >
+                        {% if study.split_point %}
+                            <a href="{% url 'createNormalizationStudy' study.study.idstudy %}"
+                               class="mx-auto w-11/12 rounded-lg bg-white p-2 text-center text-slate-800 text-sm font-bold border-2 border-white hover:border-blue-600 hover:shadow-lg transition-all" >
+                                Normalization
+                            </a >
+                            <a href="{% url 'createStudySelRed' study.study.idstudy %}"
+                               class="mx-auto w-11/12 rounded-lg bg-white p-2 text-center text-slate-800 text-sm font-bold border-2 border-white hover:border-blue-600 hover:shadow-lg transition-all" >
+                                Selection | Reduction
+                            </a >
+                            <a href="{% url 'createStudyClassification' study.study.idstudy %}"
+                               class="mx-auto w-11/12 rounded-lg bg-white p-2 text-center text-slate-800 text-sm font-bold border-2 border-white hover:border-blue-600 hover:shadow-lg transition-all" >
+                                Classification
+                            </a >
+                        {% endif %}
+                    </div >
+                {% endif %}
+            </div >
+            {% comment %} 
+            <button id="btntest" class="mt-4 w-fit h-fit text-center p-2 rounded-lg ring-2 shadow-lg ring-slate-900/5 font-bold hover:bg-slate-900/5 transition-all">
+            Ajax Test
+            </button>
+            {% endcomment %}
+        </div >
+        {# SHARE WITH USER #}
+        <div id="paneloptionsShare"
+             class="hidden absolute w-full h-full items-center backdrop-blur-[1px] bg-white/30" >
+            <div class="flex flex-col rounded-lg ring-4 ring-slate-900/5 bg-white w-1/2 mx-auto my-20 p-4" >
+                <p class="font-bold text-slate-700 mb-2" >
+                    Share your study
+                </p >
+                <p class="text-xs text-slate-700 mb-2" >
+                    You can allow other users to view your study.
+                </p >
+                <form id="commentForm" method="post" class="flex flex-col w-full border-t pt-4 space-y-4" >
+                    {% csrf_token %}
+                    <div class="flex flex-row space-x-2 justify-center" >
+                        <label for="username" class="text-slate-700 text-sm font-bold my-auto" >Enter the username you
+                            want to share with: </label >
+                        <input type="text" name="shareuser" id="username"
+                               class="border border-slate-200 text-slate-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 w-1/2 p-1 text-xs"
+                               placeholder="johndoe" required >
+                    </div >
+                    <div class="flex flex-row space-x-4 ml-auto justify-end" >
+                        <div id="closeShare"
+                             class="rounded-lg cursor-pointer ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-sm items-center hover:bg-slate-800 hover:text-white transition-all" >
+                            Cancel
+                        </div >
+                        <button id="submitShare" type="submit"
+                                formmethod="post"
+                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-sm items-center hover:bg-slate-800 hover:text-white transition-all" >
+                            Submit
+                        </button >
+                    </div >
+                </form >
+            </div >
+        </div >
+        {# EDIT PANNEL #}
+        <div id="paneloptionsEdit"
+             class="hidden absolute w-full h-full items-center backdrop-blur-[1px] bg-white/30" >
+            <div class="flex flex-col bg-white w-3/4 h-fit my-10 p-4 mx-auto rounded-lg ring-4 ring-slate-900/5" >
+                <p class="font-bold text-slate-700 mb-2" >
+                    Edit your study
+                </p >
+                <p class="text-xs text-slate-700 mb-2" >
+                    You can change your extraction options, like adding more features or channels or changing the
+                    pre-filter. <br > Your current options are set as default.
+                </p >
+                <div class="flex flex-row space-x-2 pt-4 px-4" >
+                    <label for="setname" class="text-slate-700 text-sm font-bold my-auto" >Feature Extraction
+                        Study: </label >
+                    <input type="text" id="setname"
+                           class="border border-slate-200 text-slate-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 w-1/2 p-1 text-sm"
+                           value="{{ study.study.name }}" required >
+                </div >
+                <div class="flex flex-col w-full rounded-lg mx-auto p-4 overflow-auto" >
+                    {% comment %} CHANNEL SELECTION {% endcomment %}
+                    <div class="flex flex-row rounded-lg w-full bg-slate-900/5 ring-2 ring-slate-900/10 p-2" >
+                        <form id="channelsform" class="w-full" >
+                            <div class="flex flex-row" >
+                                {% csrf_token %}
+                                <p class="text-xs font-bold text-slate-700" >Channels:</p >
+                                <ul class="flex flex-row ml-auto w-11/12 py-1 space-x-2 rounded-lg overflow-auto" >
+                                    {% for c in patientchannels %}
+                                        <li >
+                                            <input
+                                                    {% if c in channels %}
+                                                        checked
+                                                    {% endif %}
+                                                        type="checkbox"
+                                                        name="channelsselect"
+                                                        id="{{ c }}"
+                                                        value="{{ c }}"
+                                                        class="hidden peer" />
+                                            <label for="{{ c }}"
+                                                   class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                                <div class="block" >
+                                                    <div class="w-full text-xs font-bold" >{{ c }}</div >
+                                                </div >
+                                            </label >
+                                        </li >
+                                    {% endfor %}
+                                </ul >
+                            </div >
+                        </form >
+                    </div >
+                    <div class="flex flex-row w-full my-2 space-x-2" >
+                        <div class="flex flex-col w-1/5 space-y-2" >
+                            {% comment %} FILTER SELECTION {% endcomment %}
+                            <div class="flex flex-col text-xs w-full h-1/2 justify-start rounded-lg bg-slate-900/5 ring-2 ring-slate-900/10 p-2" >
+                                <div class="flex flex-row text-slate-700 justify-between" >
+                                    <p class="font-bold mb-2" >Filtering:</p >
+                                </div >
+                                <form type="POST" id="filterform" >
+                                    {% csrf_token %}
+                                    <div class="flex flex-row items-center" >
+                                        <input class="appearance-none rounded-full h-4 w-4 border border-slate-900/5 bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+                                                {% if 'none' in study.filter %}
+                                               checked
+                                                {% endif %}
+                                               type="radio"
+                                               name="filterradio"
+                                               id="none"
+                                               value="none" />
+                                        <label class="align-middle text-slate-800 font-bold" for="none" >No
+                                            Filter</label >
+                                    </div >
+                                    <div class="flex flex-row text-xs text-slate-900 font-normal text-center" >
+                                        <div class="w-1/4 ml-auto mr-2" >cut off</div >
+                                        <div class="w-1/5" >
+                                            order
+                                        </div >
+                                    </div >
+                                    <div class="flex flex-row items-center mb-2" >
+                                        <input class="appearance-none rounded-full h-4 w-4 border border-slate-900/5 bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+                                                {% if 'lowpass' in study.filter %}
+                                               checked
+                                                {% endif %}
+                                               type="radio"
+                                               name="filterradio"
+                                               id="lowpass"
+                                               value="lowpass" />
+                                        <label class="align-middle text-slate-800 font-bold" for="lowpass" >
+                                            Low-pass
+                                        </label >
+                                        <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                                {% if 'lowpass' in study.filter %}
+                                               checked
+                                                {% endif %}
+                                               type="number"
+                                               lang="en"
+                                               min="0.1"
+                                                {% if 'lowpass' in study.filter %}
+                                               value="{{ filteroptions.0 }}"
+                                                {% else %}
+                                               value="20"
+                                                {% endif %}
+                                               id="lowpassfreq" />
+                                        <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/5 px-1"
+                                               type="number"
+                                               lang="en"
+                                               min="1"
+                                                {% if 'lowpass' in study.filter %}
+                                               value="{{ filteroptions.1 }}"
+                                                {% else %}
+                                               value="5"
+                                                {% endif %}
+                                               id="lowpassorder" />
+                                    </div >
+                                    <div class="flex flex-row items-center mb-2" >
+                                        <input class="appearance-none rounded-full h-4 w-4 border border-slate-900/5 bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+                                                {% if 'highpass' in study.filter %}
+                                               checked
+                                                {% endif %}
+                                               type="radio"
+                                               name="filterradio"
+                                               id="highpass"
+                                               value="highpass" />
+                                        <label class="align-middle text-slate-800 font-bold" for="highpass" >
+                                            High-pass
+                                        </label >
+                                        <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                               type="number"
+                                               lang="en"
+                                               min="0.1"
+                                                {% if 'highpass' in study.filter %}
+                                               value="{{ filteroptions.0 }}"
+                                                {% else %}
+                                               value="0.5"
+                                                {% endif %}
+                                               id="highpassfreq" />
+                                        <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/5 px-1"
+                                               type="number"
+                                               lang="en"
+                                               min="1"
+                                                {% if 'lowpass' in study.filter %}
+                                               value="{{ filteroptions.1 }}"
+                                                {% else %}
+                                               value="2"
+                                                {% endif %}
+                                               id="highpassorder" />
+                                    </div >
+                                    <div class="flex flex-row items-center" >
+                                        <input class="appearance-none rounded-full h-4 w-4 border border-slate-900/5 bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+                                                {% if 'notch' in study.filter %}
+                                               checked
+                                                {% endif %}
+                                               type="radio"
+                                               name="filterradio"
+                                               id="notch"
+                                               value="notch" />
+                                        <label class="align-middle text-slate-800 font-bold" for="notch" >
+                                            Notch
+                                        </label >
+                                        <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                               type="number"
+                                               lang="en"
+                                               min="0.1"
+                                                {% if 'notch' in study.filter %}
+                                               value="{{ filteroptions.0 }}"
+                                                {% else %}
+                                               value="50"
+                                                {% endif %}
+                                               id="notchfreq" />
+                                        <input class="invisible border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 h-6 w-1/5 px-1"
+                                               type="number"
+                                               lang="en"
+                                               min="1"
+                                               value="0.5"
+                                               id="notchorder" />
+                                    </div >
+                                </form >
+                            </div >
+                            {% comment %} WINDOW (SIZE / STEP) SELECTION {% endcomment %}
+                            <div class="flex flex-col text-xs w-full h-1/2 justify-start rounded-lg bg-slate-900/5 ring-2 ring-slate-900/10 p-2" >
+                                <div class="flex flex-row text-slate-700 justify-between" >
+                                    <p class="font-bold mb-2" >
+                                        Windowing:
+                                    </p >
+                                </div >
+                                <form >
+                                    {% csrf_token %}
+                                    <div class="flex flex-row items-center mb-2" >
+                                        <label class="align-middle text-slate-800 font-bold" for="windowsize" >
+                                            Size (seconds)
+                                        </label >
+                                        <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                               type="number"
+                                               lang="en"
+                                               min="1"
+                                               value="{{ study.windowsize }}"
+                                               id="windowsize" />
+                                    </div >
+                                    <div class="flex flex-row items-center" >
+                                        <label class="align-middle text-slate-800 font-bold" for="windowstep" >
+                                            Step (seconds)
+                                        </label >
+                                        <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                               type="number"
+                                               lang="en"
+                                               min="1"
+                                               value="{{ study.windowstep }}"
+                                               id="windowstep" />
+                                    </div >
+                                </form >
+                            </div >
+                        </div >
+                        {% comment %} FEATURES SELECTION {% endcomment %}
+                        <div class="relative flex flex-row h-full w-4/5 rounded-lg bg-slate-900/5 ring-2 ring-slate-900/10 justify-center space-x-10 p-2 text-xs" >
+                            <form class="w-1/3 h-full" >
+                                <div class="flex flex-col w-full h-full border-r-2 py-2" >
+                                    {% csrf_token %}
+                                    <p class="font-bold text-slate-700 mb-3" >
+                                        Univariate Features:
+                                    </p >
+                                    <div class="flex flex-row mb-2" >
+                                        <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="ARModCoeff"
+                                               id="ARModCoeff" />
+                                        <label id="checkFeatARModCoeff"
+                                               class="text-sm align-middle text-slate-900"
+                                               for="ARModCoeff" >
+                                            ARModCoeff
+                                        </label >
+                                        <svg id="optionsARModCoeff"
+                                             xmlns="http://www.w3.org/2000/svg"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke-width="1.5"
+                                             stroke="currentColor"
+                                             class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                        </svg >
+                                    </div >
+                                    <div class="flex flex-row mb-2" >
+                                        <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="DecorrTime"
+                                               id="DecorrTime" />
+                                        <label id="checkFeatDecorrTime"
+                                               class="text-sm align-middle text-slate-900"
+                                               for="DecorrTime" >
+                                            DecorrTime
+                                        </label >
+                                        <svg id="optionsDecorrTime"
+                                             xmlns="http://www.w3.org/2000/svg"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke-width="1.5"
+                                             stroke="currentColor"
+                                             class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                        </svg >
+                                    </div >
+                                    <div class="mb-2" >
+                                        <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="Energy"
+                                               id="Energy" />
+                                        <label id="checkFeatEnergy"
+                                               class="text-sm align-middle text-slate-900"
+                                               for="Energy" >
+                                            Energy
+                                        </label >
+                                    </div >
+                                    <div class="mb-2" >
+                                        <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="Entropy"
+                                               id="Entropy" />
+                                        <label id="checkFeatEntropy"
+                                               class="text-sm align-middle text-slate-900"
+                                               for="Entropy" >
+                                            Entropy
+                                        </label >
+                                    </div >
+                                    <div class="mb-2" >
+                                        <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="Hjorth"
+                                               id="Hjorth" />
+                                        <label id="checkFeatHjorth"
+                                               class="text-sm align-middle text-slate-900"
+                                               for="Hjorth" >
+                                            Hjorth
+                                        </label >
+                                    </div >
+                                    <div class="flex flex-row mb-2" >
+                                        <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="NonLinear"
+                                               id="NonLinear" />
+                                        <label id="checkFeatNonLinear"
+                                               class="text-sm align-middle text-slate-900"
+                                               for="NonLinear" >
+                                            NonLinear
+                                        </label >
+                                        <svg id="optionsNonLinear"
+                                             xmlns="http://www.w3.org/2000/svg"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke-width="1.5"
+                                             stroke="currentColor"
+                                             class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                        </svg >
+                                    </div >
+                                    <div class="mb-2" >
+                                        <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="RelPow"
+                                               id="RelPow" />
+                                        <label id="checkFeatRelPow"
+                                               class="text-sm align-middle text-slate-900"
+                                               for="RelPow" >
+                                            RelPow
+                                        </label >
+                                    </div >
+                                    <div class="flex flex-row mb-2" >
+                                        <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="SpectreEdge"
+                                               id="SpectreEdge" />
+                                        <label id="checkFeatSpectreEdge"
+                                               class="text-sm align-middle text-slate-900"
+                                               for="SpectreEdge" >
+                                            SpectreEdge
+                                        </label >
+                                        <svg id="optionsSpectreEdge"
+                                             xmlns="http://www.w3.org/2000/svg"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke-width="1.5"
+                                             stroke="currentColor"
+                                             class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                        </svg >
+                                    </div >
+                                    <div class="flex flex-row mb-2" >
+                                        <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="Statistic"
+                                               id="Statistic" />
+                                        <label id="checkFeatStatistic"
+                                               class="text-sm align-middle text-slate-900"
+                                               for="Statistic" >
+                                            Statistic
+                                        </label >
+                                    </div >
+                                    <div class="flex flex-row" >
+                                        <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="WaveletCoefficient"
+                                               id="WaveletCoefficient" />
+                                        <label id="checkFeatWaveletCoefficient"
+                                               class="text-sm align-middle text-slate-900"
+                                               for="WaveletCoefficient" >
+                                            WaveletCoefficient
+                                        </label >
+                                        <svg id="optionsWaveletCoefficient"
+                                             xmlns="http://www.w3.org/2000/svg"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke-width="1.5"
+                                             stroke="currentColor"
+                                             class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                        </svg >
+                                    </div >
+                                </div >
+                            </form >
+                            <form class="w-1/3 h-full" >
+                                <div class="flex flex-col w-full h-full border-r-2 py-2" >
+                                    {% csrf_token %}
+                                    <p class="font-bold text-slate-700 mb-3" >
+                                        Multivariate Features:
+                                    </p >
+                                    <div class="flex flex-row mb-2" >
+                                        <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="Coherence"
+                                               id="Coherence" />
+                                        <label id="checkFeatCoherence"
+                                               class="text-sm align-middle text-slate-900"
+                                               for="Coherence" >
+                                            Coherence
+                                        </label >
+                                        <svg id="optionsCoherence"
+                                             xmlns="http://www.w3.org/2000/svg"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke-width="1.5"
+                                             stroke="currentColor"
+                                             class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                        </svg >
+                                    </div >
+                                    <div class="mb-2" >
+                                        <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="Correlation"
+                                               id="Correlation" />
+                                        <label id="checkFeatCorrelation"
+                                               class="text-sm align-middle text-slate-900"
+                                               for="Correlation" >
+                                            Correlation
+                                        </label >
+                                    </div >
+                                    <div class="flex flex-row mb-2" >
+                                        <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="DirectedTransferFcn"
+                                               id="DirectedTransferFcn" />
+                                        <label id="checkFeatDirectedTransferFcn"
+                                               class="text-sm align-middle text-slate-900"
+                                               for="DirectedTransferFcn" >
+                                            DirectedTransferFcn
+                                        </label >
+                                        <svg id="optionsDirectedTransferFcn"
+                                             xmlns="http://www.w3.org/2000/svg"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke-width="1.5"
+                                             stroke="currentColor"
+                                             class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                        </svg >
+                                    </div >
+                                    <div class="mb-2" >
+                                        <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="MeanPhaseCoherence"
+                                               id="MeanPhaseCoherence" />
+                                        <label id="checkFeatMeanPhaseCoherence"
+                                               class="text-sm align-middle text-slate-900"
+                                               for="MeanPhaseCoherence" >
+                                            MeanPhaseCoherence
+                                        </label >
+                                    </div >
+                                    <div class="flex flex-row mb-2" >
+                                        <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="MutualInformation"
+                                               id="MutualInformation" />
+                                        <label id="checkFeatMutualInformation"
+                                               class="text-sm align-middle text-slate-900"
+                                               for="MutualInformation" >
+                                            MutualInformation
+                                        </label >
+                                        <svg id="optionsMutualInformation"
+                                             xmlns="http://www.w3.org/2000/svg"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke-width="1.5"
+                                             stroke="currentColor"
+                                             class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                        </svg >
+                                    </div >
+                                    <div class="flex flex-row mb-2" >
+                                        <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="PartialDirectedCoherence"
+                                               id="PartialDirectedCoherence" />
+                                        <label id="checkFeatPartialDirectedCoherence"
+                                               class="text-sm align-middle text-slate-900"
+                                               for="PartialDirectedCoherence" >
+                                            PartialDirectedCoherence
+                                        </label >
+                                        <svg id="optionsPartialDirectedCoherence"
+                                             xmlns="http://www.w3.org/2000/svg"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke-width="1.5"
+                                             stroke="currentColor"
+                                             class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                        </svg >
+                                    </div >
+                                </div >
+                            </form >
+                            <form id="ecgfeat" class="w-1/3 h-full" >
+                                <div class="flex flex-col w-full h-full border-r-2 py-2" >
+                                    {% csrf_token %}
+                                    <p class="font-bold text-slate-700 mb-3" >
+                                        ECG Features:
+                                    </p >
+                                    <div class="mb-2" >
+                                        <input disabled
+                                               class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="R-RStatistics"
+                                               id="R-RStatistics" />
+                                        <label id="checkFeatR-RStatistics"
+                                               class="opacity-50 text-sm align-middle text-slate-900"
+                                               for="R-RStatistics" >
+                                            R-RStatistics
+                                        </label >
+                                    </div >
+                                    <div class="mb-2" >
+                                        <input disabled
+                                               class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="BPMStatistics"
+                                               id="BPMStatistics" />
+                                        <label id="checkFeatBPMStatistics"
+                                               class="opacity-50 text-sm align-middle text-slate-900"
+                                               for="BPMStatistics" >
+                                            BPMStatistics
+                                        </label >
+                                    </div >
+                                    <div class="mb-2" >
+                                        <input disabled
+                                               class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="SpectralAnalysis"
+                                               id="SpectralAnalysis" />
+                                        <label id="checkFeatSpectralAnalysis"
+                                               class="opacity-50 text-sm align-middle text-slate-900"
+                                               for="SpectralAnalysis" >
+                                            SpectralAnalysis
+                                        </label >
+                                    </div >
+                                    <div class="mb-2" >
+                                        <input disabled
+                                               class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="ApproximateEntropy"
+                                               id="ApproximateEntropy" />
+                                        <label id="checkFeatApproximateEntropy"
+                                               class="opacity-50 text-sm align-middle text-slate-900"
+                                               for="ApproximateEntropy" >
+                                            ApproximateEntropy
+                                        </label >
+                                    </div >
+                                    <div class="mb-2" >
+                                        <input disabled
+                                               class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                               type="checkbox"
+                                               name="featselect"
+                                               value="SampleEntropy"
+                                               id="SampleEntropy" />
+                                        <label id="checkFeatSampleEntropy"
+                                               class="opacity-50 text-sm align-middle text-slate-900"
+                                               for="SampleEntropy" >
+                                            SampleEntropy
+                                        </label >
+                                    </div >
+                                </div >
+                            </form >
+                            {% comment %} FEATURES OPTIONS {% endcomment %}
+                            <div id="paneloptionsARModCoeff"
+                                 class="hidden absolute h-full w-full top-0 right-0 p-1 bg-white rounded-lg ring-4 ring-slate-900/5 text-xs" >
+                                <div class="relative flex flex-col h-full" >
+                                    <div class="flex flex-col min-h-[50%] min-w-[50%] mx-auto my-auto" >
+                                        <div class="flex flex-row text-sm text-slate-700 font-bold justify-evenly p-4" >
+                                            <p >
+                                                AR Model Coefficients
+                                            </p >
+                                        </div >
+                                        <form id="formARModCoeff" class="rounded-lg border p-4" >
+                                            {% csrf_token %}
+                                            <div class="flex flex-row items-center my-1" >
+                                                <label class="align-middle text-slate-800 font-bold"
+                                                       for="ARModCoeffOrder" >
+                                                    AR Order
+                                                </label >
+                                                <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                                       type="number"
+                                                       lang="en"
+                                                       min="1"
+                                                       value="5"
+                                                       id="ARModCoeffOrder" />
+                                            </div >
+                                            <div class="flex flex-row items-center my-1" >
+                                                <label class="align-middle text-slate-800 font-bold"
+                                                       for="ARModCoeffMethod" >
+                                                    AR Method
+                                                </label >
+                                                <select id="ARModCoeffMethod"
+                                                        class="text-xs rounded-lg border border-slate-900/5 py-0 block h-6 w-1/4 ml-auto mr-2 px-1 focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                                    <option value="burg" >
+                                                        burg
+                                                    </option >
+                                                    <option value="cov" >
+                                                        cov
+                                                    </option >
+                                                    <option value="mcov" >
+                                                        mcov
+                                                    </option >
+                                                    <option value="yule" >
+                                                        yule
+                                                    </option >
+                                                    <option value="lpc" >
+                                                        lpc
+                                                    </option >
+                                                </select >
+                                            </div >
+                                        </form >
+                                        <div class="flex flex-row space-x-4 py-4 ml-auto mt-auto" >
+                                            <button id="closeARModCoeff"
+                                                    class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-xs items-center hover:bg-slate-800 hover:text-white transition-all" >
+                                                Cancel
+                                            </button >
+                                            <button id="confirmARModCoeff"
+                                                    class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-xs items-center hover:bg-slate-800 hover:text-white transition-all" >
+                                                Confirm
+                                            </button >
+                                        </div >
+                                    </div >
+                                </div >
+                            </div >
+                            <div id="paneloptionsWaveletCoefficient"
+                                 class="hidden absolute h-full w-full top-0 right-0 p-1 bg-white rounded-lg ring-4 ring-slate-900/5 text-xs" >
+                                <div class="relative flex flex-col h-full" >
+                                    <div class="flex flex-col min-h-[50%] min-w-[50%] mx-auto my-auto" >
+                                        <div class="flex flex-row text-sm text-slate-700 font-bold justify-evenly p-4" >
+                                            <p >
+                                                Wavelets
+                                            </p >
+                                        </div >
+                                        <form id="formWaveletCoefficient" class="rounded-lg border p-4" >
+                                            {% csrf_token %}
+                                            <div class="flex flex-row items-center my-1" >
+                                                <label class="align-middle text-slate-800 font-bold"
+                                                       for="WaveletCoefficientMother" >
+                                                    Decomposition Mother Wavelet
+                                                </label >
+                                                <select id="WaveletCoefficientMother"
+                                                        class="text-xs rounded-lg border border-slate-900/5 py-0 block h-6 w-1/4 ml-auto mr-2 px-1 focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                                    <option value="daubechie" >
+                                                        Daubechie
+                                                    </option >
+                                                </select >
+                                            </div >
+                                            <div class="flex flex-row items-center my-1" >
+                                                <label class="align-middle text-slate-800 font-bold"
+                                                       for="WaveletCoefficientLevel" >
+                                                    Wavelet Decomposition Level
+                                                </label >
+                                                <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                                       type="number"
+                                                       lang="en"
+                                                       min="1"
+                                                       value="5"
+                                                       id="WaveletCoefficientLevel" />
+                                            </div >
+                                        </form >
+                                        <div class="flex flex-row space-x-4 py-4 ml-auto mt-auto" >
+                                            <button id="closeWaveletCoefficient"
+                                                    class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-xs items-center hover:bg-slate-800 hover:text-white transition-all" >
+                                                Cancel
+                                            </button >
+                                            <button id="confirmWaveletCoefficient"
+                                                    class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-xs items-center hover:bg-slate-800 hover:text-white transition-all" >
+                                                Confirm
+                                            </button >
+                                        </div >
+                                    </div >
+                                </div >
+                            </div >
+                        </div >
+                    </div >
+                </div >
+                <div class="flex flex-row space-x-4 ml-auto mt-4 justify-end" >
+                    <button id="closeEdit"
+                            class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-sm items-center hover:bg-slate-800 hover:text-white transition-all" >
+                        Cancel
+                    </button >
+                    <button type="submit"
+                            formmethod="post"
+                            id="confirmEdit"
+                            class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-sm items-center hover:bg-slate-800 hover:text-white transition-all" >
+                        Submit
+                    </button >
+                </div >
+            </div >
+        </div >
+    </section >
+{% endblock content %}
+{% block scripts %}
+    <script >
+        window.addEventListener("load", (event) => {
+            if ({{ channels|safe }}.includes('ECG')) {
+                $("#ecgfeat :input").prop("disabled", false);
+                $("#ecgfeat label").removeClass("opacity-50");
+            } else {
+                $("#ecgfeat :input").prop("disabled", true);
+                $("#ecgfeat :input").prop("checked", false);
+                $("#ecgfeat label").addClass("opacity-50");
+            }
+            //{% comment %} TODO: FEATS OPTIONS {% endcomment %}
+            for (i = 0; i < ({{ study.feats|safe }}.length); i++) {
+                $("#" + {{ study.feats|safe }}[i]).prop("checked", true);
+            }
+        });
+        const checkbox = document.querySelector("input[id=ECG]");
+        checkbox.addEventListener('change', function () {
+            if (this.checked) {
+                $("#ecgfeat :input").prop("disabled", false);
+                $("#ecgfeat label").removeClass("opacity-50");
+            } else {
+                $("#ecgfeat :input").prop("disabled", true);
+                $("#ecgfeat :input").prop("checked", false);
+                $("#ecgfeat label").addClass("opacity-50");
+            }
+        });
+        const contentBtns = document.querySelectorAll('[id^="btnNotChecked"]');
+        contentBtns.forEach(function (elem) {
+            elem.addEventListener("click", (event) => {
+                let contentSelected = elem.id.replace('btnNotChecked', '');
+                setDataElems(contentSelected);
+            });
+        });
+
+        function setDataElems(param) {
+            document.querySelectorAll('[id*="Checked"]:not([id*="' + param + '"]), [id^="content"]:not([id^="content' + param + '"]), [id^="btnNotChecked' + param + '"]').forEach(elem => elem.classList.add('hidden'));
+            document.querySelectorAll('[id*="NotChecked"]:not([id*="' + param + '"]), [id^="content' + param + '"], [id^="btnChecked' + param + '"]').forEach(elem => elem.classList.remove('hidden'));
+        }
+
+        function sortTable(n, tablename) {
+            let table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            table = document.getElementById(tablename + "Table");
+            switching = true;
+            //Set the sorting direction to ascending:
+            dir = "asc";
+            /*Make a loop that will continue until
+            no switching has been done:*/
+            while (switching) {
+                //start by saying: no switching is done:
+                switching = false;
+                rows = table.rows;
+                /*Loop through all table rows (except the
+                first, which contains table headers):*/
+                for (i = 1; i < (rows.length - 1); i++) {
+                    //start by saying there should be no switching:
+                    shouldSwitch = false;
+                    /*Get the two elements you want to compare,
+                    one from current row and one from the next:*/
+                    x = rows[i].getElementsByTagName("TD")[n];
+                    y = rows[i + 1].getElementsByTagName("TD")[n];
+                    /*check if the two rows should switch place,
+                    based on the direction, asc or desc:*/
+                    if (dir == "asc") {
+                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                            //if so, mark as a switch and break the loop:
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir == "desc") {
+                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                            //if so, mark as a switch and break the loop:
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    /*If a switch has been marked, make the switch
+                    and mark that a switch has been done:*/
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    //Each time a switch is done, increase this count by 1:
+                    switchcount++;
+                } else {
+                    /*If no switching has been done AND the direction is "asc",
+                    set the direction to "desc" and run the while loop again.*/
+                    if (switchcount == 0 && dir == "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+        }
+
+        document.getElementById('submitComment').addEventListener('click', (event) => {
+            document.getElementById('commentForm').submit();
+        });
+        const deleteBtns = document.querySelectorAll('[id^="delete"]');
+        deleteBtns.forEach(function (elem) {
+            elem.addEventListener("click", (event) => {
+                let id = elem.id.replace('delete', '');
+                let url = "{{ request.path }}";
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    data: {
+                        'todeleteid': id,
+                        'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                    },
+                    datatype: 'json',
+                    success: function (data) {
+                        document.getElementById('comment' + id).remove();
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+            });
+        });
+        const optionsBtns = document.querySelectorAll('[id^="open"],[id^="options"],[id^="close"],[id^="confirm"],[id^="submit"]:not([id*="Comment"],[id*="submitShare"])');
+        optionsBtns.forEach(function (elem) {
+            elem.addEventListener("click", (event) => {
+                let btn = elem.id.replace("options", "").replace("close", "").replace("confirm", "").replace("submit", "").replace('open', '');
+                if (elem.classList.contains('disabled')) {
+                    alert('There is still an update to be made. Refresh the page to check again.')
+                    return
+                }
+                document.getElementById('paneloptions' + btn).classList.toggle('hidden');
+                if (elem.id == 'optionsSummary' || elem.id == 'confirmEdit') {
+                    let channels = $('input[name="channelsselect"]:checked').map((i, el) => el.value).get();
+                    let filter = $('input[name="filterradio"]:checked').val();
+                    let filteroptions = [$('input[id="' + filter + 'freq"]').val(), $('input[id="' + filter + 'order"]').val()];
+                    let window = [$('input[id="windowsize"]').val(), $('input[id="windowstep"]').val()];
+                    let feats = $('input[name="featselect"]:checked').map((i, el) => el.value).get();
+                    let setname = $('input[id="setname"]').val();
+                    let featsoptions = [];
+                    for (let i = 0; i < feats.length; i++) {
+                        let keys = $("#paneloptions" + feats[i]).find("select, input").map((i, el) => el.id).get();
+                        let values = $("#paneloptions" + feats[i]).find("select, input").map((i, el) => el.value).get();
+                        let result = {};
+                        keys.forEach((key, i) => result[key] = values[i]);
+                        featsoptions.push(result);
+                    }
+                    if (elem.id == 'confirmEdit') {
+                        if (channels.length == 0 || feats.length == 0) {
+                            alert('Your options are incorrect. Make sure to select at least one feature and one channel.');
+                            return
+                        }
+                        const url = '{% url 'extractionStudy' study.study.idstudy %}';
+                        $.ajax({
+                            url: url,
+                            type: "POST",
+                            data: {
+                                //{% comment %} !  {% endcomment %}
+                                'patient': 8902,
+                                'channels[]': channels,
+                                'filter': filter,
+                                'filteroptions[]': filteroptions,
+                                'windowing[]': window,
+                                'feats[]': feats,
+                                'featsoptions[][]': JSON.stringify(featsoptions),
+                                'setname': setname,
+                                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                            },
+                            datatype: 'json',
+                            success: function (data) {
+                                location.reload();
+                            }
+                        });
+                        return
+                    }
+                    //{% comment %} FEAT OPTIONS FORM RESETING ON CLOSING WINDOW WITHOUT CONFIRM {% endcomment %}
+                } else if ((elem.id).includes('close') && !((elem.id).includes('Share') || (elem.id).includes('Edit'))) {
+                    document.getElementById('form' + btn).reset();
+                }
+            });
+        });
+        {% comment %} $('#btntest').click(function(){
+            var catid;
+            catid ='testing';
+            $.ajax(
+            {
+                type:"GET",
+                url: "{% url 'testing' %}",
+                data:{
+                         post_id: catid
+                },
+                success: function( data ) 
+                {
+                    console.log('hey')
+                }
+             })
+        }); {% endcomment %}
+    </script >
+{% endblock scripts %}

@@ -1,0 +1,1831 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block title %} EPIWEB | Classification {% endblock %}
+{% block content %}
+    {# NAVBAR #}
+    {% include "app/nav1.html" %}
+    <nav class="container w-full mx-auto my-1" >
+        <ol class="flex text-xs font-bold" >
+            <li >
+                <a href="{% url 'index' %}"
+                   class="align-middle text-slate-800 hover:drop-shadow-lg transition-all" >Home</a >
+            </li >
+            <li >
+                <span class="text-sm text-slate-800 mx-2" >&gt;</span >
+            </li >
+            <li class="align-middle font-normal text-slate-500" >New Classification Study</li >
+        </ol >
+    </nav >
+    {# TOP BUTTONS #}
+    <section class="container flex flex-row mx-auto mt-8 text-sm font-bold text-slate-900 justify-between" >
+        <div id="topbuttons" class="flex flex-row" >
+            <a href="{% url 'createStudy' 0 %}"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5 " >
+                <p class="border-b-2 border-slate-900/5w-fit group-hover:border-blue-600 transition-all" >Feature
+                    Extraction</p >
+            </a >
+            <a href="{% url 'trainTestSplit' 0 %}" id="btnNotCheckedPred"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >Train / Test
+                    Split</p >
+            </a >
+            <a href="{% url 'createNormalizationStudy' 0 %}" id="btnNotCheckedPred"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >
+                    Normalization</p >
+            </a >
+            <a href="{% url 'createStudySelRed' 0 %}"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5 " >
+                <p class="border-b-2 border-slate-900/5w-fit group-hover:border-blue-600 transition-all" >Feature
+                    Selection | Dimensionality Reduction</p >
+            </a >
+            <a id="btnNotCheckedPred"
+               class="mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-blue-600 w-fit" >Classification</p >
+            </a >
+            {% comment %}
+            <a href="{% url 'PostProcessingStudy' 0 %}"
+            class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5 " >
+            <p class="border-b-2 border-slate-900/5w-fit group-hover:border-blue-600 transition-all" >
+                Post-Processing</p >
+            </a >
+            {% endcomment %}
+        </div >
+        <button id="optionsSummary"
+                class="rounded-lg w-fit bg-slate-900/5 ring-4 ring-blue-600 text-center text-slate-800 shadow-lg p-2 hover:bg-slate-800 hover:text-white hover:shadow-xl cursor-pointer transition-all" >
+            Create Study
+        </button >
+    </section >
+    <hr class="container mx-auto mt-5 mb-1 h-1 bg-slate-800/5" />
+    {# MAIN SECTION #}
+    <section class="container relative flex flex-col h-screen mx-auto py-2" >
+        <div class="flex flex-row h-1/4" >
+            {# DATASET SELECTION #}
+            <div class="flex flex-col bg-slate-900/5 shadow-lg rounded-lg w-3/4 m-2 ring-4 ring-slate-900/5" >
+                <p class="text-sm text-slate-800 font-bold py-2 px-4" >Select a dataset:</p >
+                <div class="flex flex-col px-4 py-2 overflow-auto" >
+                    {% for feat in studies %}
+                        {% if feat.idstudy == studyId %}
+                            <div class="flex items-center pl-4 border border-slate-900/5 mb-1 rounded-lg" >
+                                {% if feat.type == "extraction" %}
+                                    <input checked
+                                           id="{{ feat.idstudy }}extractfeatradio"
+                                           type="radio"
+                                           value="extract{{ feat.idstudy }}"
+                                           name="studiesradio"
+                                           class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                                    <label for="{{ feat.idstudy }}extractfeatradio"
+                                           class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >#{{ feat.idstudy }}<span
+                                            class="mx-1 rounded-lg p-1 bg-sky-500 text-[10px]" > Extraction </span >{{ feat.name }}
+                                    </label >
+                                {% elif feat.type == 'normalization' %}
+                                    <input checked
+                                           id="{{ feat.idstudy }}normalizationfeatradio"
+                                           type="radio"
+                                           value="normalization{{ feat.idstudy }}"
+                                           name="studiesradio"
+                                           class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                                    <label for="{{ feat.idstudy }}normalizationfeatradio"
+                                           class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >#{{ feat.idstudy }}<span
+                                            class="mx-1 rounded-lg p-1 bg-red-500 text-[10px]" > Normalization </span >{{ feat.name }}
+                                    </label >
+                                {% else %}
+                                    <input checked
+                                           id="{{ feat.idstudy }}selredfeatradio"
+                                           type="radio"
+                                           value="selred{{ feat.idstudy }}"
+                                           name="studiesradio"
+                                           class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                                    <label for="{{ feat.idstudy }}selredfeatradio"
+                                           class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >#{{ feat.idstudy }}<span
+                                            class="mx-1 rounded-lg p-1 bg-teal-500 text-[10px]" > Feature Selection | Dimensionality Reduction </span >{{ feat.name }}
+                                    </label >
+                                {% endif %}
+                            </div >
+                        {% else %}
+                            <div class="flex items-center pl-4 border border-slate-900/5 mb-1 rounded-lg" >
+                                {% if feat.type == "extraction" %}
+                                    <input
+                                            id="{{ feat.idstudy }}extractfeatradio"
+                                            type="radio"
+                                            value="extract{{ feat.idstudy }}"
+                                            name="studiesradio"
+                                            class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                                    <label for="{{ feat.idstudy }}extractfeatradio"
+                                           class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >#{{ feat.idstudy }}<span
+                                            class="mx-1 rounded-lg p-1 bg-sky-500 text-[10px]" > Extraction </span >{{ feat.name }}
+                                    </label >
+                                {% elif feat.type == 'normalization' %}
+                                    <input
+                                            id="{{ feat.idstudy }}normalizationfeatradio"
+                                            type="radio"
+                                            value="normalization{{ feat.idstudy }}"
+                                            name="studiesradio"
+                                            class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                                    <label for="{{ feat.idstudy }}normalizationfeatradio"
+                                           class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >#{{ feat.idstudy }}<span
+                                            class="mx-1 rounded-lg p-1 bg-red-500 text-[10px]" > Normalization </span >{{ feat.name }}
+                                    </label >
+                                {% else %}
+                                    <input
+                                            id="{{ feat.idstudy }}selredfeatradio"
+                                            type="radio"
+                                            value="selred{{ feat.idstudy }}"
+                                            name="studiesradio"
+                                            class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                                    <label for="{{ feat.idstudy }}selredfeatradio"
+                                           class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >#{{ feat.idstudy }}<span
+                                            class="mx-1 rounded-lg p-1 bg-teal-500 text-[10px]" > Feature Selection | Dimensionality Reduction </span >{{ feat.name }}
+                                    </label >
+                                {% endif %}
+                            </div >
+                        {% endif %}
+                    {% endfor %}
+                </div >
+            </div >
+            {# PREVIOUS STUDIES #}
+            <div class="flex flex-col w-1/4 rounded-lg m-2 py-2 px-4 border-b-2" >
+                <p class="text-sm text-slate-800 font-bold mb-2" >Previous Studies:</p >
+                <div class="h-1/8 overflow-auto -mx-4 px-4" >
+                    <table id="studiesTable" class="w-full text-xs text-left text-slate-500" >
+                        <tbody >
+                        {% for s in previous %}
+                            <tr class="border-b" >
+                                <th class="px-4 py-2 font-bold text-slate-900" >
+                                    {{ s.study.name }}
+                                </th >
+                                <td class="px-1" >
+                                    by {{ s.study.user.username }}
+                                </td >
+                                <td class="px-1" >
+                                    <a target="_blank"
+                                       rel="noopener noreferrer"
+                                       href="{% url 'classificationStudy' s.study.idstudy %}" >
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke-width="1.5"
+                                             class="ml-2 w-4 h-4 stroke-blue-600 hover:stroke-slate-800 transition-all" >
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                                        </svg >
+                                    </a >
+                                </td >
+                            </tr >
+                        {% endfor %}
+                        </tbody >
+                    </table >
+                </div >
+            </div >
+        </div >
+        {# OPTIONS SECTION #}
+        <div class="relative flex flex-row h-3/4" >
+            {# OPTIONS #}
+            <div class="relative flex flex-col bg-slate-900/5 w-3/4 shadow-lg rounded-lg ring-4 m-2 py-2 px-4 ring-slate-900/5 overflow-auto" >
+                <p class="text-sm text-slate-800 font-bold mb-2" >Classification Options</p >
+                {# DATA SELECTION #}
+                <div class="flex flex-row my-2 rounded-lg w-full ring-2 ring-slate-900/5 p-2" >
+                    <div class="flex flex-row w-full" >
+                        {% csrf_token %}
+                        <p class="text-xs font-bold text-slate-700 mr-6" >Data:</p >
+                        <ul class="my-auto border-r-4 pr-4 mr-4" >
+                            <li >
+                                <input type="checkbox"
+                                       name="alldataselect"
+                                       id="featbtnalldata"
+                                       value="alldata"
+                                       class="hidden peer" />
+                                <label for="featbtnalldata"
+                                       class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                    <div class="block" >
+                                        <div class="w-full text-xs font-bold" >All</div >
+                                    </div >
+                                </label >
+                            </li >
+                        </ul >
+                        <ul id="datalist" class="flex flex-row w-11/12 py-1 space-x-2 overflow-auto" >
+                            {% for col in columns %}
+                                <li >
+                                    <input type="checkbox"
+                                           name="dataselect"
+                                           id="featbtn{{ col }}"
+                                           value="{{ col }}"
+                                           class="hidden peer" />
+                                    <label for="featbtn{{ col }}"
+                                           class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                        <div class="block" >
+                                            <div class="w-full text-xs font-bold" >{{ col }}</div >
+                                        </div >
+                                    </label >
+                                </li >
+                            {% endfor %}
+                        </ul >
+                    </div >
+                </div >
+                {# METHOD SELECTION #}
+                <ul class="flex flex-row space-x-4 mt-4 w-full" >
+                    <li id="methodSVM" >
+                        <input type="checkbox" id="checkMethodSVM" name="method" value="SVM" class="hidden peer"
+                               required >
+                        <label for="checkMethodSVM"
+                               class="inline-flex items-center justify-between w-full px-5 py-3 text-slate-500 bg-white border-4 border-slate-200 rounded-lg cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-slate-600 hover:bg-slate-100 transition-all" >
+                            <div class="block" >
+                                <div class="w-full text-sm font-bold" >SVM</div >
+                                <div class="w-full text-xs" >Support Vector Machine</div >
+                            </div >
+                        </label >
+                    </li >
+                    <li id="methodLSTM" >
+                        <input type="checkbox" id="checkMethodLSTM" name="method" value="LSTM" class="hidden peer"
+                               required disabled>
+                        <label for="checkMethodLSTM"
+                               class="inline-flex items-center justify-between w-full px-5 py-3 text-slate-500 bg-white border-4 border-slate-200 rounded-lg cursor-not-allowed peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-slate-600 hover:bg-slate-100 transition-all" >
+                            <div class="block" >
+                                <div class="w-full text-sm font-bold" >LSTM</div >
+                                <div class="w-full text-xs" >Long Short Term Memory NN</div >
+                            </div >
+                        </label >
+                    </li >
+                    <li id="methodCNN" >
+                        <input type="checkbox" id="checkMethodCNN" name="method" value="CNN" class="hidden peer"
+                               required disabled >
+                        <label for="checkMethodCNN"
+                               class="inline-flex items-center justify-between w-full px-5 py-3 text-slate-500 bg-white border-4 border-slate-200 rounded-lg cursor-not-allowed peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-slate-600 hover:bg-slate-100 transition-all" >
+                            <div class="block" >
+                                <div class="w-full text-sm font-bold" >CNN</div >
+                                <div class="w-full text-xs" >Celullar NN</div >
+                            </div >
+                        </label >
+                    </li >
+                    <li id="methodANN" >
+                        <input type="checkbox" id="checkMethodANN" name="method" value="ANN" class="hidden peer"
+                               required disabled >
+                        <label for="checkMethodANN"
+                               class="inline-flex items-center justify-between w-full px-5 py-3 text-slate-500 bg-white border-4 border-slate-200 rounded-lg cursor-not-allowed peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-slate-600 hover:bg-slate-100 transition-all" >
+                            <div class="block" >
+                                <div class="w-full text-sm font-bold" >ANN</div >
+                                <div class="w-full text-xs" >Artificial Neural Network</div >
+                            </div >
+                        </label >
+                    </li >
+                </ul >
+                {# METHOD OPTIONS #}
+                <div class="flex flex-row mt-2 w-full h-3/4 border-t-2 border-slate-900/10 py-2" >
+                    <div id="methodOptionsPanel" class="grid grid-cols-6 gap-2 h-full w-full rounded-lg" >
+                        {# NCLASSES SELECTION #}
+                        <div id='nclasses'
+                             class="hidden flex flex-col col-span-1 p-2 space-y-2 rounded-lg ring-2 ring-slate-900/10 text-center" >
+                            <p class="align-middle text-slate-700 text-xs font-bold" >Number of Classes</p >
+                            <ul class="flex flex-col space-y-1 w-full overflow-auto" >
+                                <li class="" >
+                                    <input type="checkbox" id="checkNclassesTwo" name="numberofclasses" value="2"
+                                           class="hidden peer" required checked >
+                                    <label for="checkNclassesTwo"
+                                           class="flex flex-col h-[90px] w-full p-2 text-slate-500 bg-white border-2 border-slate-200 rounded-lg cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-slate-600 hover:bg-slate-100 transition-all" >
+                                        <div class="w-full font-bold" >2</div >
+                                        <div class="w-full text-xs" >Pre-Ictal vs Non-Preictal</div >
+                                    </label >
+                                </li >
+                                <li class="" >
+                                    <input type="checkbox" id="checkNclassesFour" name="numberofclasses" value="4"
+                                           class="hidden peer" required disabled >
+                                    <label for="checkNclassesFour"
+                                           class="flex flex-col h-[90px] w-full p-2 text-slate-500 bg-white border-2 border-slate-200 rounded-lg cursor-not-allowed peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-slate-600 hover:bg-slate-100 transition-all" >
+                                        <div class="w-full font-bold" >4</div >
+                                        <div class="w-full text-xs" >Inter-Ictal, Pre-Ictal, Ictal and Post-Ictal</div >
+                                    </label >
+                                </li >
+                            </ul >
+                        </div >
+                        {# METHODS OPTIONS #}
+                        <div id="paneloptionsSVM"
+                             class="hidden flex flex-row col-span-5 h-full text-center rounded-lg ring-2 ring-slate-900/5" >
+                            {# SVM KERNEL #}
+                            <div class="flex flex-col w-1/3 p-2 space-y-2 h-full bg-slate-900/5 text-center rounded-lg" >
+                                <p class="align-middle text-slate-700 text-xs font-bold" >
+                                    SVM Kernel
+                                </p >
+                                <ul class="flex flex-col w-11/12 mx-auto py-1 space-y-1 overflow-auto" >
+                                    <li >
+                                        <input type="radio" name="SVMKernel" id="SVMKernelLinear" value="linear"
+                                               class="hidden peer" />
+                                        <label for="SVMKernelLinear"
+                                               class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                            <div class="w-full text-xs font-bold" >Linear</div >
+                                        </label >
+                                    </li >
+                                    <li >
+                                        <input type="radio" name="SVMKernel" id="SVMKernelRBF" value="rbf"
+                                               class="hidden peer" checked />
+                                        <label for="SVMKernelRBF"
+                                               class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                            <div class="w-full text-xs font-bold" >RBF</div >
+                                        </label >
+                                    </li >
+                                    <li >
+                                        <input type="radio" name="SVMKernel" id="SVMKernelPoly" value="poly"
+                                               class="hidden peer" />
+                                        <label for="SVMKernelPoly"
+                                               class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                            <div class="w-full text-xs font-bold" >Polynomial</div >
+                                        </label >
+                                    </li >
+                                    <li >
+                                        <input type="radio" name="SVMKernel" id="SVMKernelSigmoid" value="sigmoid"
+                                               class="hidden peer" />
+                                        <label for="SVMKernelSigmoid"
+                                               class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                            <div class="w-full text-xs font-bold" >Sigmoid</div >
+                                        </label >
+                                    </li >
+                                </ul >
+                            </div >
+                            {# KERNEL OPTIONS #}
+                            <div id="OptionsSVMKernelLINEAR"
+                                 class="hidden flex flex-col w-2/3 p-2 space-y-2 h-full text-center rounded-lg" >
+                                <p class="font-bold text-center text-xs text-slate-700" >
+                                    Linear Kernel Options
+                                </p >
+                                <div class="grid grid-cols-2 gap-2 p-10" >
+                                    <label for="SVMC"
+                                           class="my-auto text-end text-slate-500 text-xs font-bold p-1" >C</label >
+                                    <input type="number" name="SVMC" id="SVMC" value="1" min="0.0000001"
+                                           step="any"
+                                           class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                    {# Gamma #}
+                                    <label for="use_maxiter"
+                                           class="my-auto text-end text-slate-500 text-xs font-bold p-1" >Define Max Iterations</label >
+                                    <input type="checkbox" name="use_maxiter" id="use_maxiter"
+                                           class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           onClick="toggleInput(this, 'linear', 'SVMmaxIter')" >
+                                    <label for="SVMmaxIter"
+                                           class="hidden my-auto text-end text-slate-500 text-xs font-bold p-1" ></label >
+                                    <input type="number" name="SVMmaxIter" id="SVMmaxIter" value="1000"
+                                           step="10"
+                                           class="hidden self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                    
+                                </div >
+                            </div >
+                            <div id="OptionsSVMKernelRBF"
+                                 class="flex flex-col w-2/3 p-2 space-y-2 h-full text-center rounded-lg" >
+                                <p class="font-bold text-center text-xs text-slate-700" >
+                                    Radial Basis Function Kernel Options
+                                </p >
+                                <div class="grid grid-cols-2 gap-2 p-10" >
+                                    <label for="SVMC"
+                                           class="my-auto text-end text-slate-500 text-xs font-bold p-1" >C</label >
+                                    <input type="number" name="SVMC" id="SVMC" value="1.5" min="0.000001"
+                                           step="0.01"
+                                           class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                    <label for="use_gamma"
+                                           class="my-auto text-end text-slate-500 text-xs font-bold p-1" >Define Gamma</label >
+                                    <input type="checkbox" name="use_gamma" id="use_gamma"
+                                           class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           onClick="toggleInput(this, 'rbf', 'SVMgamma')" >
+                                    <label for="SVMgamma"
+                                           class="hidden my-auto text-end text-slate-500 text-xs font-bold p-1" ></label >
+                                    <input type="number" name="SVMgamma" id="SVMgamma" value="1" min="0.000001"
+                                           step="0.01"
+                                           class="hidden self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                    <label for="use_maxiter"
+                                           class="my-auto text-end text-slate-500 text-xs font-bold p-1" >Define Max Itererations</label >
+                                    <input type="checkbox" name="use_maxiter" id="use_maxiter"
+                                           class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           onClick="toggleInput(this, 'rbf', 'SVMmaxIter')" >
+                                    <label for="SVMmaxIter"
+                                           class="hidden my-auto text-end text-slate-500 text-xs font-bold p-1" ></label >
+                                    <input type="number" name="SVMmaxIter" id="SVMmaxIter" value="1000"
+                                           step="10"
+                                           class="hidden self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                </div >
+                            </div >
+                            <div id="OptionsSVMKernelPOLY"
+                                 class="hidden flex flex-col w-2/3 p-2 space-y-2 h-full text-center rounded-lg" >
+                                <p class="font-bold text-center text-xs text-slate-700" >
+                                    Polynomial Kernel Options
+                                </p >
+                                <div class="grid grid-cols-2 gap-2 p-10 max-h-72 overflow-y-auto" >
+                                    {# C Value #}
+                                    <label for="SVMC"
+                                           class="my-auto text-end text-slate-500 text-xs font-bold p-1" >C</label >
+                                    <input type="number" name="SVMC" id="SVMC" value="1.5" min="0.000001"
+                                           step="0.01"
+                                           class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                    {# Gamma #}
+                                    <label for="use_gamma"
+                                           class="my-auto text-end text-slate-500 text-xs font-bold p-1" >Gamma</label >
+                                    <input type="checkbox" name="use_gamma" id="use_gamma"
+                                           class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           onClick="toggleInput(this, 'poly', 'SVMgamma')" >
+                                    <label for="SVMgamma"
+                                           class="hidden my-auto text-end text-slate-500 text-xs font-bold p-1" ></label >
+                                    <input type="number" name="SVMgamma" id="SVMgamma" value="1" min="0.000001"
+                                           step="0.01"
+                                           class="hidden self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                    {# Degree #}
+                                    <label for="use_degree"
+                                           class="my-auto text-end text-slate-500 text-xs font-bold p-1" >Degree</label >
+                                    <input type="checkbox" name="use_degree" id="use_degree"
+                                           class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           onClick="toggleInput(this, 'poly', 'SVMdegree')" >
+                                    <label for="SVMdegree"
+                                           class="hidden my-auto text-end text-slate-500 text-xs font-bold p-1" ></label >
+                                    <input type="number" name="SVMdegree" id="SVMdegree" value="3" min="0"
+                                           class="hidden self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                    {# Coef0 #}
+                                    <label for="use_coef0"
+                                           class="my-auto text-end text-slate-500 text-xs font-bold p-1" >Coef0</label >
+                                    <input type="checkbox" name="use_coef0" id="use_coef0"
+                                           class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           onClick="toggleInput(this, 'poly', 'SVMcoef0')" >
+                                    <label for="SVMcoef0"
+                                           class="hidden my-auto text-end text-slate-500 text-xs font-bold p-1" ></label >
+                                    <input type="number" name="SVMcoef0" id="SVMcoef0" value="1"
+                                           class="hidden self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                    {# Max Iteration #}
+                                    <label for="use_maxiter"
+                                           class="my-auto text-end text-slate-500 text-xs font-bold p-1" >Max Iterations</label >
+                                    <input type="checkbox" name="use_maxiter" id="use_maxiter"
+                                           class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           onClick="toggleInput(this, 'poly', 'SVMmaxIter')" >
+                                    <label for="SVMmaxIter"
+                                           class="hidden my-auto text-end text-slate-500 text-xs font-bold p-1" ></label >
+                                    <input type="number" name="SVMmaxIter" id="SVMmaxIter" value="1000"
+                                           step="10"
+                                           class="hidden self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                </div >
+                            </div >
+                            <div id="OptionsSVMKernelSIGMOID"
+                                 class="hidden flex flex-col w-2/3 p-2 space-y-2 h-full text-center rounded-lg" >
+                                <p class="font-bold text-center text-xs text-slate-700" >
+                                    Sigmoid Kernel Options
+                                </p >
+                                <div class="grid grid-cols-2 gap-2 p-10 max-h-72 overflow-y-auto" >
+                                    {# C Value #}
+                                    <label for="SVMC"
+                                           class="my-auto text-end text-slate-500 text-xs font-bold p-1" >C</label >
+                                    <input type="number" name="SVMC" id="SVMC" value="1.5" min="0.000001"
+                                           step="0.01"
+                                           class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                    {# Gamma #}
+                                    <label for="use_gamma"
+                                           class="my-auto text-end text-slate-500 text-xs font-bold p-1" >Gamma</label >
+                                    <input type="checkbox" name="use_gamma" id="use_gamma"
+                                           class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           onClick="toggleInput(this, 'sigmoid', 'SVMgamma')" >
+                                    <label for="SVMgamma"
+                                           class="hidden my-auto text-end text-slate-500 text-xs font-bold p-1" ></label >
+                                    <input type="number" name="SVMgamma" id="SVMgamma" value="1" min="0.000001"
+                                           step="0.01"
+                                           class="hidden self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                    {# Coef0 #}
+                                    <label for="use_coef0"
+                                           class="my-auto text-end text-slate-500 text-xs font-bold p-1" >Coef0</label >
+                                    <input type="checkbox" name="use_coef0" id="use_coef0"
+                                           class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           onClick="toggleInput(this, 'sigmoid', 'SVMcoef0')" >
+                                    <label for="SVMcoef0"
+                                           class="hidden my-auto text-end text-slate-500 text-xs font-bold p-1" ></label >
+                                    <input type="number" name="SVMcoef0" id="SVMcoef0" value="1"
+                                           class="hidden self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                    {# Max Iteration #}
+                                    <label for="use_maxiter"
+                                           class="my-auto text-end text-slate-500 text-xs font-bold p-1" >Max Iterations</label >
+                                    <input type="checkbox" name="use_maxiter" id="use_maxiter"
+                                           class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           onClick="toggleInput(this, 'sigmoid', 'SVMmaxIter')" >
+                                    <label for="SVMmaxIter"
+                                           class="hidden my-auto text-end text-slate-500 text-xs font-bold p-1" ></label >
+                                    <input type="number" name="SVMmaxIter" id="SVMmaxIter" value="1000"
+                                           step="10"
+                                           class="hidden self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                </div >
+                            </div >
+                        </div >
+                        <div id="paneloptionsLSTM"
+                             class="hidden flex flex-row col-span-5 h-full text-center rounded-lg ring-2 ring-slate-900/5" >
+                            Options LSTM
+                        </div >
+                        <div id="paneloptionsCNN"
+                             class="hidden flex flex-row col-span-5 h-full text-center rounded-lg ring-2 ring-slate-900/5" >
+                            Options CNN
+                        </div >
+                        <div id="paneloptionsANN"
+                             class="hidden flex flex-row col-span-5 h-full text-center rounded-lg ring-2 ring-slate-900/5" >
+                            {# TYPE #}
+                            <div class="flex flex-col w-1/3 p-2 space-y-2 h-full bg-slate-900/5 text-center rounded-lg" >
+                                <p class="align-middle text-slate-700 text-xs font-bold" >
+                                    Network Type
+                                </p >
+                                <ul class="flex flex-col w-11/12 mx-auto py-1 space-y-1 overflow-auto" >
+                                    <li >
+                                        <input type="checkbox" name="checkNetType" id="checkNetTypeFF" value="FF"
+                                               class="hidden peer" checked />
+                                        <label for="checkNetTypeFF"
+                                               class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                            <div class="w-full text-xs font-bold" >Feed-forward backprop</div >
+                                        </label >
+                                    </li >
+                                    <li >
+                                        <input type="checkbox" name="checkNetType" id="checkNetTypeRecurrent"
+                                               value="Recurrent" class="hidden peer" />
+                                        <label for="checkNetTypeRecurrent"
+                                               class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                            <div class="w-full text-xs font-bold" >Recurrent</div >
+                                        </label >
+                                    </li >
+                                </ul >
+                            </div >
+                            <div id="netoptionsFF" class="flex flex-row w-2/3" >
+                                {# NETWORK OPTIONS #}
+                                <div class="flex flex-col w-1/2 py-2 px-6 space-y-2 h-full border-r-2" >
+                                    <p class="font-bold text-center text-xs text-slate-700" >
+                                        Network Properties
+                                    </p >
+                                    <div class="grid grid-cols-2 gap-1" >
+                                        <label class="my-auto text-end text-slate-500 text-xs font-bold p-1"
+                                               for="TrainingFunction" >
+                                            Training Function
+                                        </label >
+                                        <select id="TrainingFunction"
+                                                class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                            <option value="trainlm" >
+                                                trainlm
+                                            </option >
+                                        </select >
+                                        <label class="my-auto text-end text-slate-500 text-xs font-bold p-1"
+                                               for="Epochs" >
+                                            Epochs
+                                        </label >
+                                        <input class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all"
+                                               type="number"
+                                               lang="en"
+                                               min="1"
+                                               value="100"
+                                               id="Epochs" />
+                                        <label class="my-auto text-end text-slate-500 text-xs font-bold p-1"
+                                               for="LearningFunction" >
+                                            Learning Function
+                                        </label >
+                                        <select id="LearningFunction"
+                                                class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                            <option value="learngdm" >
+                                                learngdm
+                                            </option >
+                                        </select >
+                                        <label class="my-auto text-end text-slate-500 text-xs font-bold p-1"
+                                               for="Goal" >
+                                            Goal
+                                        </label >
+                                        <input class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all"
+                                               type="number"
+                                               lang="en"
+                                               min="1"
+                                               value="5"
+                                               id="Goal" />
+                                        <label class="my-auto text-end text-slate-500 text-xs font-bold p-1"
+                                               for="PerformanceFunction" >
+                                            Performance Function
+                                        </label >
+                                        <select id="PerformanceFunction"
+                                                class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                            <option value="mse" >
+                                                mse
+                                            </option >
+                                        </select >
+                                        <label class="my-auto text-end text-slate-500 text-xs font-bold p-1"
+                                               for="PreIctal" >
+                                            Pre-Ictal (min)
+                                        </label >
+                                        <input class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all"
+                                               type="number"
+                                               lang="en"
+                                               min="1"
+                                               value="5"
+                                               id="PreIctal" />
+                                        <label class="my-auto text-end text-slate-500 text-xs font-bold p-1"
+                                               for="Threshold" >
+                                            Threshold Level (%)
+                                        </label >
+                                        <input class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all"
+                                               type="number"
+                                               lang="en"
+                                               min="1"
+                                               value="50"
+                                               id="Threshold" />
+                                        <label class="my-auto text-end text-slate-500 text-xs font-bold p-1"
+                                               for="EarlyDetectionTime" >
+                                            Early Detection Time (s)
+                                        </label >
+                                        <input class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all"
+                                               type="number"
+                                               lang="en"
+                                               min="1"
+                                               value="10"
+                                               id="EarlyDetectionTime" />
+                                    </div >
+                                </div >
+                                {# LAYERS OPTIONS #}
+                                <div class="flex flex-col w-1/2 py-2 space-y-2 h-full min-h-[346px]" >
+                                    <p class="font-bold text-center text-xs text-slate-700" >
+                                        Layer Properties
+                                    </p >
+                                    <div id="layersList"
+                                         class="flex flex-col px-4 space-y-1 max-h-[275px] overflow-y-scroll" >
+                                        <div id="layerPanel1" class="flex flex-col rounded-lg bg-white p-1 -mr-4" >
+                                            <div class="flex flex-row justify-between" >
+                                                <p id="layerTitle1" class="mx-auto font-bold text-slate-700 text-xs" >
+                                                    Layer 1
+                                                </p >
+                                                <div class="flex flex-row justify-end space-x-2 mt-0.5" >
+                                                    <div id="copyLayerbtn1" >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                             viewBox="0 0 24 24" stroke-width="1.5"
+                                                             class="w-4 h-4 stroke-slate-500 hover:stroke-slate-800 hover:cursor-pointer hover:w-5 hover:h-5 transition-all" >
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                  d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+                                                        </svg >
+                                                    </div >
+                                                    <div id="deleteLayerbtn1" >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                             viewBox="0 0 24 24" stroke-width="1.5"
+                                                             class="hidden w-4 h-4 stroke-red-500 hover:stroke-red-800 hover:cursor-pointer hover:w-5 hover:h-5 transition-all" >
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                  d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                        </svg >
+                                                    </div >
+                                                </div >
+                                            </div >
+                                            <div class="grid grid-cols-2 gap-1" >
+                                                <label class="my-auto text-end text-slate-500 text-xs"
+                                                       for="Nneurons1" >
+                                                    Number of Neurons
+                                                </label >
+                                                <input class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all"
+                                                       type="number"
+                                                       lang="en"
+                                                       min="1"
+                                                       value="15"
+                                                       id="Nneurons1" />
+                                                <label class="my-auto text-end text-slate-500 text-xs"
+                                                       for="TransferFunction1" >
+                                                    Transfer Function
+                                                </label >
+                                                <select id="TransferFunction1"
+                                                        class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                                    <option value="tansig" >
+                                                        tansig
+                                                    </option >
+                                                </select >
+                                            </div >
+                                        </div >
+                                    </div >
+                                    <div class="flex flex-row justify-between mx-4" >
+                                        <div class="flex flex-row space-x-2" >
+                                            <label class="my-auto text-slate-500 text-xs font-bold"
+                                                   for="Nlayers" >
+                                                #Layers
+                                            </label >
+                                            <input class="text-xs text-slate-500 font-bold rounded-lg border-2 border-slate-900/5 p-0.5 block h-fit w-12 bg-transparent"
+                                                   type="number"
+                                                   lang="en"
+                                                   min="1"
+                                                   value="1"
+                                                   id="Nlayers" disabled />
+                                        </div >
+                                        <button id="addLayerbtn"
+                                                class="ml-auto w-fit h-fit rounded-full p-0.5 bg-slate-900/5 ring-2 ring-slate-900/10 shadow-lg hover:bg-slate-900 hover:ring-blue-600 transition-all" >
+                                            <svg class="h-4 w-4 my-auto stroke-blue-600 group-hover:stroke-white stroke-2"
+                                                 fill="none"
+                                                 viewBox="0 0 24 24" >
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M12 4.5v15m7.5-7.5h-15" />
+                                            </svg >
+                                        </button >
+                                    </div >
+                                </div >
+                            </div >
+                            <div id="netoptionsRecurrent" class="hidden flex flex-row w-2/3" >
+                                <p class="m-auto" >Recurrent Neural Network Options</p >
+                            </div >
+                        </div >
+                    </div >
+                    {% comment %}
+                    <div id="paneloptionsANN" class="hidden grid grid-cols-6 gap-2 h-full w-full rounded-lg" >
+                        <div class="flex flex-row col-span-5 h-full text-center rounded-lg ring-2 ring-slate-900/5   " >
+                            {# TYPE #}
+                            <div class="flex flex-col w-1/3 p-2 space-y-2 h-full bg-slate-900/5 text-center rounded-lg" >
+                                <p class="align-middle text-slate-700 text-xs font-bold" >
+                                    Network Type
+                                </p >
+                                <ul class="flex flex-col w-11/12 mx-auto py-1 space-y-1 overflow-auto" >
+                                    <li >
+                                        <input type="checkbox" name="checkNetType" id="checkNetTypeFF" value="FF"
+                                               class="hidden peer" checked />
+                                        <label for="checkNetTypeFF"
+                                               class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                            <div class="w-full text-xs font-bold" >Feed-forward backprop</div >
+                                        </label >
+                                    </li >
+                                    <li >
+                                        <input type="checkbox" name="checkNetType" id="checkNetTypeRecurrent"
+                                               value="Recurrent" class="hidden peer" />
+                                        <label for="checkNetTypeRecurrent"
+                                               class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                            <div class="w-full text-xs font-bold" >Recurrent</div >
+                                        </label >
+                                    </li >
+                                </ul >
+                            </div >
+                            <div id="netoptionsFF" class="flex flex-row w-2/3" >
+                                {# NETWORK OPTIONS #}
+                                <div class="flex flex-col w-1/2 py-2 px-6 space-y-2 h-full border-r-2" >
+                                    <p class="font-bold text-center text-xs text-slate-700" >
+                                        Network Properties
+                                    </p >
+                                    <div class="grid grid-cols-2 gap-1" >
+                                        <label class="my-auto text-end text-slate-500 text-xs font-bold p-1"
+                                               for="TrainingFunction" >
+                                            Training Function
+                                        </label >
+                                        <select id="TrainingFunction"
+                                                class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                            <option value="trainlm" >
+                                                trainlm
+                                            </option >
+                                        </select >
+                                        <label class="my-auto text-end text-slate-500 text-xs font-bold p-1"
+                                               for="Epochs" >
+                                            Epochs
+                                        </label >
+                                        <input class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all"
+                                               type="number"
+                                               lang="en"
+                                               min="1"
+                                               value="100"
+                                               id="Epochs" />
+                                        <label class="my-auto text-end text-slate-500 text-xs font-bold p-1"
+                                               for="LearningFunction" >
+                                            Learning Function
+                                        </label >
+                                        <select id="LearningFunction"
+                                                class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                            <option value="learngdm" >
+                                                learngdm
+                                            </option >
+                                        </select >
+                                        <label class="my-auto text-end text-slate-500 text-xs font-bold p-1"
+                                               for="Goal" >
+                                            Goal
+                                        </label >
+                                        <input class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all"
+                                               type="number"
+                                               lang="en"
+                                               min="1"
+                                               value="5"
+                                               id="Goal" />
+                                        <label class="my-auto text-end text-slate-500 text-xs font-bold p-1"
+                                               for="PerformanceFunction" >
+                                            Performance Function
+                                        </label >
+                                        <select id="PerformanceFunction"
+                                                class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                            <option value="mse" >
+                                                mse
+                                            </option >
+                                        </select >
+                                        <label class="my-auto text-end text-slate-500 text-xs font-bold p-1"
+                                               for="PreIctal" >
+                                            Pre-Ictal (min)
+                                        </label >
+                                        <input class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all"
+                                               type="number"
+                                               lang="en"
+                                               min="1"
+                                               value="5"
+                                               id="PreIctal" />
+                                        <label class="my-auto text-end text-slate-500 text-xs font-bold p-1"
+                                               for="Threshold" >
+                                            Threshold Level (%)
+                                        </label >
+                                        <input class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all"
+                                               type="number"
+                                               lang="en"
+                                               min="1"
+                                               value="50"
+                                               id="Threshold" />
+                                        <label class="my-auto text-end text-slate-500 text-xs font-bold p-1"
+                                               for="EarlyDetectionTime" >
+                                            Early Detection Time (s)
+                                        </label >
+                                        <input class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all"
+                                               type="number"
+                                               lang="en"
+                                               min="1"
+                                               value="10"
+                                               id="EarlyDetectionTime" />
+                                    </div >
+                                </div >
+                                {# LAYERS OPTIONS #}
+                                <div class="flex flex-col w-1/2 py-2 space-y-2 h-full min-h-[346px]" >
+                                    <p class="font-bold text-center text-xs text-slate-700" >
+                                        Layer Properties
+                                    </p >
+                                    <div id="layersList"
+                                         class="flex flex-col px-4 space-y-1 max-h-[275px] overflow-y-scroll" >
+                                        <div id="layerPanel1" class="flex flex-col rounded-lg bg-white p-1 -mr-4" >
+                                            <div class="flex flex-row justify-between" >
+                                                <p id="layerTitle1" class="mx-auto font-bold text-slate-700 text-xs" >
+                                                    Layer 1
+                                                </p >
+                                                <div class="flex flex-row justify-end space-x-2 mt-0.5" >
+                                                    <div id="copyLayerbtn1" >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                             viewBox="0 0 24 24" stroke-width="1.5"
+                                                             class="w-4 h-4 stroke-slate-500 hover:stroke-slate-800 hover:cursor-pointer hover:w-5 hover:h-5 transition-all" >
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                  d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+                                                        </svg >
+                                                    </div >
+                                                    <div id="deleteLayerbtn1" >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                             viewBox="0 0 24 24" stroke-width="1.5"
+                                                             class="hidden w-4 h-4 stroke-red-500 hover:stroke-red-800 hover:cursor-pointer hover:w-5 hover:h-5 transition-all" >
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                  d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                        </svg >
+                                                    </div >
+                                                </div >
+                                            </div >
+                                            <div class="grid grid-cols-2 gap-1" >
+                                                <label class="my-auto text-end text-slate-500 text-xs"
+                                                       for="Nneurons1" >
+                                                    Number of Neurons
+                                                </label >
+                                                <input class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all"
+                                                       type="number"
+                                                       lang="en"
+                                                       min="1"
+                                                       value="15"
+                                                       id="Nneurons1" />
+                                                <label class="my-auto text-end text-slate-500 text-xs"
+                                                       for="TransferFunction1" >
+                                                    Transfer Function
+                                                </label >
+                                                <select id="TransferFunction1"
+                                                        class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                                    <option value="tansig" >
+                                                        tansig
+                                                    </option >
+                                                </select >
+                                            </div >
+                                        </div >
+                                    </div >
+                                    <div class="flex flex-row justify-between mx-4" >
+                                        <div class="flex flex-row space-x-2" >
+                                            <label class="my-auto text-slate-500 text-xs font-bold"
+                                                   for="Nlayers" >
+                                                #Layers
+                                            </label >
+                                            <input class="text-xs text-slate-500 font-bold rounded-lg border-2 border-slate-900/5 p-0.5 block h-fit w-12 bg-transparent"
+                                                   type="number"
+                                                   lang="en"
+                                                   min="1"
+                                                   value="1"
+                                                   id="Nlayers" disabled />
+                                        </div >
+                                        <button id="addLayerbtn"
+                                                class="ml-auto w-fit h-fit rounded-full p-0.5 bg-slate-900/5 ring-2 ring-slate-900/10 shadow-lg hover:bg-slate-900 hover:ring-blue-600 transition-all" >
+                                            <svg class="h-4 w-4 my-auto stroke-blue-600 group-hover:stroke-white stroke-2"
+                                                 fill="none"
+                                                 viewBox="0 0 24 24" >
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M12 4.5v15m7.5-7.5h-15" />
+                                            </svg >
+                                        </button >
+                                    </div >
+                                </div >
+                            </div >
+                            <div id="netoptionsRecurrent" class="hidden flex flex-row w-2/3" >
+                                <p class="m-auto" >Recurrent Neural Network Options</p >
+                            </div >
+                        </div >
+                    </div >
+                    {% endcomment %}
+                </div >
+                {# HELP #}
+                <div id="methodHelp"
+                     class="hidden flex-col min-h-[88px] w-full py-2 px-6 rounded-lg ring-2 ring-slate-900/5 overflow-auto" >
+                    <div class="flex flex-row justify-between" >
+                        <p id="methodDetailsLabel"
+                           class="font-bold text-xs text-slate-700" >
+                            Method
+                        </p >
+                        <p class="font-bold text-[10px] text-slate-600" >
+                            Help
+                        </p >
+                    </div >
+                    <div class="text-slate-900 overflow-auto -mx-4 px-4" >
+                        <p id="methodDetails" class="text-justify text-xs" >
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc non lectus in sapien auctor
+                            bibendum. <br > Phasellus tortor leo, porttitor at ligula non, volutpat faucibus orci. Sed
+                            nisl enim, convallis malesuada nisl vitae, pellentesque accumsan tortor. Vivamus consectetur
+                            dui gravida, sollicitudin est sit amet, volutpat orci. <br >Fusce placerat ex quis nibh
+                            congue, et dignissim tortor dignissim. Integer eros tortor, accumsan et facilisis sed,
+                            fringilla luctus nibh. Nam fringilla scelerisque tellus, nec malesuada ipsum molestie eget.
+                            Nulla sed commodo turpis. Praesent congue congue aliquet. Proin efficitur, nibh a
+                            pellentesque convallis, quam ex tempus nisi, sed fringilla tortor metus volutpat nibh.
+                            Pellentesque ut iaculis ex. Nunc egestas neque eu feugiat mattis. Proin dignissim metus ac
+                            ante pulvinar elementum. Morbi tempor mauris vel tortor rutrum, sed facilisis sem elementum.
+                            Nulla lectus elit, maximus in porta feugiat, sodales sed lacus.
+                        </p >
+                    </div >
+                </div >
+                {# LOADING SCREEN #}
+                <div id="loading"
+                     class="hidden absolute h-full w-full backdrop-blur-sm bg-white/30 text-center" >
+                    <div class="my-40" >
+                        <button disabled
+                                type="button"
+                                class="text-slate-800 text-lg font-bold bg-slate-900/5 rounded-lg px-5 py-2.5 text-center mr-2 inline-flex items-center" >
+                            <svg class="inline w-6 h-6 mr-3 text-slate-800 motion-safe:animate-spin"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 xmlns="http://www.w3.org/2000/svg" >
+                                <path
+                                        opacity="0.2"
+                                        fill-rule="evenodd"
+                                        clip-rule="evenodd"
+                                        d="M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19ZM12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                        fill="currentColor"
+                                />
+                                <path
+                                        d="M2 12C2 6.47715 6.47715 2 12 2V5C8.13401 5 5 8.13401 5 12H2Z"
+                                        fill="currentColor"
+                                />
+                            </svg >
+                            Loading...
+                        </button >
+                    </div >
+                </div >
+            </div >
+            {# PATIENT FAST DETAILS AND HELP SECTION #}
+            <div class="relative flex flex-col h-full w-1/4 mr-4" >
+                {# INFOS #}
+                <div class="flex flex-col h-1/2 w-full rounded-lg m-2 py-2 px-4 border-b-2 overflow-auto" >
+                    <div id="extractinfo" class="flex flex-col w-full h-full" >
+                        <p class="text-sm text-slate-800 font-bold mb-2" >
+                            Feature Extraction Study
+                        </p >
+                        <div class="h-[70%] overflow-auto -mx-4 px-4" >
+                            <table class="w-full text-xs text-left text-slate-500" >
+                                <tbody >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        ID
+                                    </th >
+                                    <td id="extractsid" class="px-4" >
+                                        {{ studyId }}
+                                    </td >
+                                </tr >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        Channels
+                                    </th >
+                                    <td id="schannels" class="px-4" >
+                                        {{ schannels }}
+                                    </td >
+                                </tr >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        Features
+                                    </th >
+                                    <td id="snfeatures" class="px-4" >
+                                        {{ snfeatures }}
+                                    </td >
+                                </tr >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        Filter
+                                    </th >
+                                    <td id="sfilter" class="px-4" >
+                                        {{ sfilter }}
+                                    </td >
+                                </tr >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        Window Size
+                                    </th >
+                                    <td id="swindowsize" class="px-4" >
+                                        {{ swindowsize }}
+                                    </td >
+                                </tr >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        Window Step
+                                    </th >
+                                    <td id="swindowstep" class="px-4" >
+                                        {{ swindowstep }}
+                                    </td >
+                                </tr >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        Training Samples
+                                    </th >
+                                    <td id="snsamples" class="px-4" >
+                                        {{ snsamples }}
+                                    </td >
+                                </tr >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        Testing Samples
+                                    </th >
+                                    <td id="snsamples_test" class="px-4" >
+                                        {{ snsamples_test }}
+                                    </td >
+                                </tr >
+                                </tbody >
+                            </table >
+                        </div >
+                        <a href="{% url 'extractionStudy' studyId %}"
+                           id="detailsBtn"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="flex flex-row group mt-auto ml-auto mb-1 rounded-lg ring-2 ring-blue-600 hover:bg-slate-800 hover:shadow-md p-1 items-center transition-all" >
+                            <div class="font-bold text-xs items-center group-hover:text-white transition-all" >
+                                more details
+                            </div >
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke-width="1.5"
+                                 class="ml-2 w-4 h-4 stroke-blue-600 group-hover:stroke-white transition-all" >
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg >
+                        </a >
+                    </div >
+                    <div id="norminfo" class=" hidden flex flex-col w-full h-full" >
+                        <p class="text-sm text-slate-800 font-bold mb-2" >
+                            Normalization Study
+                        </p >
+                        <div class="h-[70%] overflow-auto -mx-4 px-4" >
+                            <table class="w-full text-xs text-left text-slate-500" >
+                                <tbody >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        ID
+                                    </th >
+                                    <td id="normid" class="px-4" >
+                                        {{ studyId }}
+                                    </td >
+                                </tr >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        Features
+                                    </th >
+                                    <td id="snfeatures" class="px-4" >
+                                        {{ snfeatures }}
+                                    </td >
+                                </tr >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        Method
+                                    </th >
+                                    <td id="smethod" class="px-4" >
+                                        {% for method in smethod %}
+                                            {{ method }}
+                                            {% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </td >
+                                </tr >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        Training Samples
+                                    </th >
+                                    <td id="snsamples" class="px-4" >
+                                        {% if snsamples %}
+                                            {{ snsamples }}
+                                        {% endif %}
+                                    </td >
+                                </tr >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        Testing Samples
+                                    </th >
+                                    <td id="snsamples_test" class="px-4" >
+                                        {% if snsamples_test %}
+                                            {{ snsamples_test }}
+                                        {% endif %}
+                                    </td >
+                                </tr >
+                                </tbody >
+                            </table >
+                        </div >
+                        <a href="{% url 'normalizationStudy' studyId %}"
+                           id="detailsBtn"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="flex flex-row group mt-auto ml-auto mb-1 rounded-lg ring-2 ring-blue-600 hover:bg-slate-800 hover:shadow-md p-1 items-center transition-all" >
+                            <div class="font-bold text-xs items-center group-hover:text-white transition-all" >
+                                more details
+                            </div >
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke-width="1.5"
+                                 class="ml-2 w-4 h-4 stroke-blue-600 group-hover:stroke-white transition-all" >
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg >
+                        </a >
+                    </div >
+                    <div id="selredinfo" class="hidden flex flex-col w-full h-full" >
+                        <p class="text-sm text-slate-800 font-bold mb-2" >
+                            Selection/Reduction Study
+                        </p >
+                        <div class="h-[70%] overflow-auto -mx-4 px-4" >
+                            <table class="w-full text-xs text-left text-slate-500" >
+                                <tbody >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        ID
+                                    </th >
+                                    <td id="selredsid" class="px-4" >
+                                        {{ studyId }}
+                                    </td >
+                                </tr >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        Features
+                                    </th >
+                                    <td id="snfeatures" class="px-4" >
+                                        {{ snfeatures }}
+                                    </td >
+                                </tr >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        Methods
+                                    </th >
+                                    <td id="smethod" class="px-4" >
+                                        {% for method in smethod %}
+                                            {{ method }}
+                                            {% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </td >
+                                </tr >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        Training Samples
+                                    </th >
+                                    <td id="snsamples" class="px-4" >
+                                        {% if snsamples %}
+                                            {{ snsamples }}
+                                        {% endif %}
+                                    </td >
+                                </tr >
+                                <tr class="border-b" >
+                                    <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                        Testing Samples
+                                    </th >
+                                    <td id="snsamples_test" class="px-4" >
+                                        {% if snsamples_test %}
+                                            {{ snsamples_test }}
+                                        {% endif %}
+                                    </td >
+                                </tr >
+                                </tbody >
+                            </table >
+                        </div >
+                        <a href="{% url 'selredStudy' studyId %}"
+                           id="detailsBtn"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="flex flex-row group mt-auto ml-auto mb-1 rounded-lg ring-2 ring-blue-600 hover:bg-slate-800 hover:shadow-md p-1 items-center transition-all" >
+                            <div class="font-bold text-xs items-center group-hover:text-white transition-all" >
+                                more details
+                            </div >
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke-width="1.5"
+                                 class="ml-2 w-4 h-4 stroke-blue-600 group-hover:stroke-white transition-all" >
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg >
+                        </a >
+                    </div >
+                </div >
+                {% comment %} GRAPHS
+                <div class="flex flex-col h-1/2 w-full rounded-lg m-2 py-2 px-4 border-b-2 overflow-auto" >
+                    <p class="text-sm text-slate-800 font-bold mb-4" >
+                        Extracted Feature data
+                    </p >
+                    <div id="nothingpanel"
+                         class="hidden mx-auto my-auto text-base text-slate-500" >
+                        Nothing to Show
+                    </div >
+                    <div id="graphsPanel" class="h-[68%] overflow-y-auto overflow-x-hidden -mx-4 pr-4" >
+                        {% if study.type == "extraction" %}
+                            {% for feature in info.0 %}
+                                <p id="{{ feature }}div"
+                                   class="w-fit text-slate-800 text-xs font-bold mb-2 ml-4" >{{ feature }}:</p >
+                                <!-- ! ATENCAO A ESTA TAG (VER TAMBEM A FUNCAO GET GRAPHS) -->
+                                {% for option in info.1|get:forloop.counter0 %}
+                                    {% for channel in info.2 %}
+                                        <div id="graphnone_{{ feature }}_{{ option }}_{{ channel }}" class="w-full" >
+                                        </div >
+                                    {% endfor %}
+                                {% endfor %}
+                            {% endfor %}
+                        {% endif %}
+                    </div >
+                    <a href="{% url 'plotFeature' studyId 30 0 %}"
+                       id="plotBtn"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="flex flex-row group mt-auto ml-auto mb-1 rounded-lg ring-2 ring-blue-600 hover:bg-slate-800 hover:shadow-md p-1 items-center transition-all" >
+                        <div class="font-bold text-xs items-center group-hover:text-white transition-all" >
+                            more details
+                        </div >
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="1.5"
+                             class="ml-2 w-4 h-4 stroke-blue-600 group-hover:stroke-white transition-all" >
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                        </svg >
+                    </a >
+                </div >
+                {% endcomment %}
+            </div >
+        </div >
+        {# OPTIONS SUMMARY #}
+        <div id="paneloptionsSummary"
+             class="hidden absolute w-full h-full backdrop-blur-[1px] bg-white/30" >
+            <div class="flex flex-col rounded-lg ring-4 ring-slate-900/5 bg-white w-1/2 mx-auto my-20 p-4" >
+                <p class="font-bold text-slate-700 mb-2" >
+                    Your options summary
+                </p >
+                <div class="flex flex-row space-x-6 m-4 text-slate-900 justify-center" >
+                    <div class="flex flex-col h-fit rounded-lg p-2 ring-2 shadow-sm ring-slate-900/5 text-xs text-center" >
+                        <p class="font-bold text-slate-700 mb-2" >
+                            Dataset
+                        </p >
+                        <div id="datasetsummary" >
+                        </div >
+                    </div >
+                    <div class="flex flex-col max-h-80 overflow-y-auto rounded-lg p-2 ring-2 shadow-sm ring-slate-900/5 text-xs text-center" >
+                        <p class="font-bold text-slate-700 mb-2" >
+                            Data
+                        </p >
+                        <div id="datasummary" >
+                        </div >
+                    </div >
+                    <div class="flex flex-col h-fit rounded-lg p-2 ring-2 shadow-sm ring-slate-900/5 text-xs text-center" >
+                        <p class="font-bold text-slate-700 mb-2" >
+                            Classification Method
+                        </p >
+                        <div id="methodsummary" >
+                        </div >
+                    </div >
+                    <div class="flex flex-col h-fit max-h-40 mx-auto rounded-lg ring-2 shadow-sm ring-slate-900/5 text-xs text-center" >
+                        <p class="mx-auto bg-white font-bold text-slate-700 p-2" >
+                            Method Parameters
+                        </p >
+                        <pre class="overflow-y-auto overflow-x-hidden pb-2" id="parameterssummary" >
+                        </pre >
+                    </div >
+                </div >
+                <div id="warnings"
+                     class="max-w-fit max-h-fit rounded-lg p-2 m-auto my-2 font-bold text-xs text-white text-center bg-slate-800" >
+                </div >
+                <div class="flex flex-col w-full border-t pt-4 space-y-4" >
+                    <div class="flex flex-row space-x-2 justify-center" >
+                        <label for="setname" class="text-slate-700 text-sm font-bold my-auto" >Enter a name for your
+                            feature dataset: </label >
+                        <input type="text" id="setname"
+                               class="border border-slate-200 text-slate-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 w-1/2 p-1 text-xs"
+                               placeholder="ex: fp1_wavelets" required >
+                    </div >
+                    <div class="flex flex-row space-x-4 ml-auto justify-end" >
+                        <button id="closeSummary"
+                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-sm items-center hover:bg-slate-800 hover:text-white transition-all" >
+                            Cancel
+                        </button >
+                        <button id="submitSummary" type="submit"
+                                formmethod="post"
+                                id="confirmSummary"
+                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-sm items-center hover:bg-slate-800 hover:text-white transition-all" >
+                            Submit
+                        </button >
+                        <button id="submitSummaryBlocked" type="submit"
+                                formmethod="post"
+                                id="confirmSummary"
+                                class="hidden rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-sm items-center opacity-50 cursor-not-allowed transition-all" >
+                            Submit
+                        </button >
+                    </div >
+                </div >
+            </div >
+        </div >
+        {# ERROR PANEL #}
+        <div id="paneloptionsFlag"
+             class="hidden absolute w-3/4 h-3/4 bottom-0 backdrop-blur-[3px] bg-white/30" >
+            <div class="flex flex-col justify-evenly rounded-lg ring-4 ring-slate-900/5 w-1/2 mx-auto my-28 p-4 font-bold text-center" >
+                <p >Something went wrong.<br >The file is missing, so there's no chance on creating a study.</p >
+            </div >
+        </div >
+    </section >
+{% endblock content %}
+{% block scripts %}
+    <script >
+        function toggleInput(checkbox, kernel, inputId) {
+            let optionsContainer = $("#OptionsSVMKernel" + kernel.toUpperCase());
+            //let inputField = optionsContainer.find("input[id='" + inputId + "']");
+            let inputField = optionsContainer.find("#" + inputId);
+            let labelField = optionsContainer.find("label[for='" + inputId + "']");
+            inputField.toggleClass("hidden", !checkbox.checked);
+            labelField.toggleClass("hidden", !checkbox.checked);
+        }
+
+        {% comment %}
+        function getGraphs(signal, signalTime, filter) {
+            //{#!07/06 signal.length -> info.length #}
+            for (let feat = 0; feat < (info[0].length); feat++) {
+                for (let featoption = 0; featoption < (info[1][feat].length); featoption++) {
+                    for (let channel = 0; channel < (info[2].length); channel++) {
+                        let traceColor = 'rgb(37, 99, 235)';
+                        const trace = {
+                            y: signal[feat][featoption][channel],
+                            x: signalTime,
+                            type: 'scatter',
+                            // {#  ! ESTE NOME APENAS RESULTA PARA AS STATS! #}
+                            name: info[2][channel] + '_' + info[1][feat][featoption],
+                            line: {
+                                color: traceColor,
+                                width: 1
+                            }
+                        };
+                        const data = [trace];
+                        const layout = {
+                            showlegend: true,
+                            legend: {
+                                size: 1,
+                                font: {
+                                    family: 'sans-serif',
+                                    size: 8,
+                                },
+                            },
+                            xaxis: {
+                                showticklabels: false,
+                                showgrid: false,
+                            },
+                            yaxis: {
+                                title: {
+                                    text: '',
+                                },
+                                showgrid: false,
+                                showticklabels: false,
+                            },
+                            height: 30,
+                            //{# TODO: COMPOR ISTO DO RESPONSIVE (O PROBLEMA ESTA EM FAZER BUILD NUMA HIDDEN DIV) #}
+                            autosize: true,
+                            margin: {
+                                t: 0,
+                                b: 10,
+                                r: 0,
+                                l: 20,
+                            },
+                        }
+                        //{# ! 30/05: info[1][featoption]  ->   info[1][feat][featoption] #}
+                        Plotly.newPlot('graph' + filter + '_' + info[0][feat] + '_' + info[1][feat][featoption] + '_' + info[2][channel], data, layout, {
+                            displaylogo: false,
+                            responsive: true,
+                            modeBarButtonsToRemove: ['pan2d', 'select2d', 'lasso2d', 'zoomOut2d', 'zoomIn2d', 'zoom2d', 'autoscale2d']
+                        });
+                    }
+                }
+            }
+        }
+        {% endcomment %}
+        // FUNCTION TO GET THE OPTIONS ASSOCIATED WITH A METHOD
+        function getMethodOptions(method) {
+            let methodoptions = [];
+            let result = {};
+            result['nclasses'] = parseInt($('input[name="numberofclasses"]:checked').val());
+            if (method === "SVM") {
+                let selectedKernel = $("#paneloptions" + method).find("input[name='SVMKernel']:checked").val();
+                result['SVMKernel'] = selectedKernel;
+                let optionsContainer = $("#OptionsSVMKernel" + selectedKernel.toUpperCase());
+                optionsContainer.find("select, input:not([type='checkbox']):not([type='radio']), input:checked, input[type='radio']:checked, input[type='checkbox']")
+                    .toArray()
+                    .reduce((acc, el) => {
+                        if (el.type === 'radio') {
+                            acc[el.name] = el.value;
+                        } else if (el.type === 'checkbox') {
+                            acc[el.id] = el.checked;
+                        } else {
+                            acc[el.id] = el.value;
+                        }
+                        return acc;
+                    }, result);
+            }
+            methodoptions.push(result);
+            return methodoptions;
+        }
+
+        const optionsBtns = document.querySelectorAll('[id^="options"],[id^="close"],[id^="submit"]');
+        optionsBtns.forEach(function (elem) {
+            elem.addEventListener("click", (event) => {
+                let btn = elem.id.replace("options", "").replace("close", "").replace("submit", "");
+                document.getElementById('paneloptions' + btn).classList.toggle('hidden');
+                if (elem.id == 'optionsSummary' || elem.id == 'submitSummary') {
+                    document.getElementById('datasetsummary').innerHTML = '';
+                    document.getElementById('datasummary').innerHTML = '';
+                    document.getElementById('methodsummary').innerHTML = '';
+                    document.getElementById('parameterssummary').innerHTML = '';
+                    document.getElementById('warnings').innerHTML = '';
+                    let studytype = $("input[name='studiesradio']:checked").val();
+                    let study = studytype.replace('extract', '').replace('selred', '').replace('normalization', '');
+                    let data = $('input[name="dataselect"]:checked').map((i, el) => el.value).get();
+                    let method = $('input[name="method"]:checked').val();
+                    let methodoptions = getMethodOptions(method);
+                    let setname = $('input[id="setname"]').val();
+                    if (elem.id == 'submitSummary') {
+                        let url = "{{ current.path }}";
+                        $.ajax({
+                            url: url,
+                            type: "POST",
+                            data: {
+                                'study': study,
+                                'data[]': data,
+                                'method': method,
+                                'methodoptions[][]': JSON.stringify(methodoptions),
+                                'setname': setname,
+                                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                            },
+                            datatype: 'json',
+                            success: function (data) {
+                                location.replace("{% url 'index' %}")
+                            },
+                        });
+                        return
+                    }
+                    $('#datasetsummary').append('<p>' + study + '</p>');
+                    data.forEach(function (item) {
+                        $('#datasummary').append('<p>' + item + '</p>');
+                    });
+                    $('#methodsummary').append('<p>' + method + '</p>');
+                    $('#parameterssummary').append('<p>' + JSON.stringify(methodoptions[0], undefined, 1).replace(/"([^"]+)":/g, '$1:').replace(/[{}]/g, '') + '</p>');
+                    if (data.length == 0 || typeof method == 'undefined') {
+                        document.getElementById('submitSummary').classList.add('hidden');
+                        document.getElementById('submitSummaryBlocked').classList.remove('hidden');
+                        if (data.length == 0 && typeof method == 'undefined') {
+                            $('#warnings').append('<p class="text-red-600">At a minimum, you have to select one dataset to study and one method.</p>');
+                        } else if (data.length == 0) {
+                            $('#warnings').append('<p class="text-red-600">No dataset has been selected. Please go back and select at least one.</p>');
+                        } else if (typeof method == 'undefined') {
+                            $('#warnings').append('<p class="text-red-600">No method has been selected. Please go back and select at least one.</p>');
+                        }
+                    } else {
+                        $('#warnings').append('<p class="text-blue-600 my-1">Depending on your choices, the task may or may not take a good amount of time.</p><p class="text-blue-600 my-1">SUBMIT and you will be notified when the task is completed.</p>');
+                        document.getElementById('submitSummary').classList.remove('hidden');
+                        document.getElementById('submitSummaryBlocked').classList.add('hidden');
+                    }
+                    if (data.length == 0) {
+                        $('#datasummary').html('<p>-</p>');
+                    }
+                    if (typeof method == 'undefined') {
+                        $('#methodsummary').html('<p>-</p>');
+                    }
+                    if (Object.keys(methodoptions[0]).length == 0) {
+                        $('#parameterssummary').html('<p>-</p>');
+                    }
+                }
+            });
+        });
+        //{% comment %} FOR METHOD CHECKBOXES {% endcomment %}
+        $('input[type="checkbox"]').on('change', function () {
+            if (this.id.includes("checkMethod") || this.id.includes("checkNclasses") || this.id.includes("checkNetType")) {
+                if (!this.checked && (this.id.includes("checkNclasses") || this.id.includes("checkNetType"))) {
+                    $(this).prop('checked', true);
+                }
+                $('input[name="' + this.name + '"]').not(this).prop('checked', false);
+            }
+        });
+        const methodsBtns = document.querySelectorAll('[id*="checkMethod"]');
+        methodsBtns.forEach(function (elem) {
+            elem.addEventListener("click", (event) => {
+                document.querySelectorAll('[id^="paneloptions"]').forEach(item => {
+                    $('#nclasses').addClass('hidden');
+                    item.classList.add("hidden");
+                });
+                if (elem.checked) {
+                    $('#nclasses').removeClass('hidden');
+                    document.getElementById("paneloptions" + elem.id.replace("checkMethod", "")).classList.toggle("hidden");
+                }
+            });
+        });
+        const netTypeBtns = document.querySelectorAll('[id*="checkNetType"]');
+        netTypeBtns.forEach(function (elem) {
+            elem.addEventListener("click", (event) => {
+                document.querySelectorAll('[id^="netoptions"]').forEach(item => {
+                    item.classList.add("hidden");
+                });
+                document.getElementById("netoptions" + elem.id.replace("checkNetType", "")).classList.remove("hidden");
+            });
+        });
+        //{% comment %} FOR LAYER OPTIONS {% endcomment %}
+        $(document).on('click', '[id*="Layerbtn"]', function () {
+            let layers, currentLayer, toDelete, toCopy;
+            layers = document.querySelectorAll('[id^="layerPanel"]');
+            try {
+                currentLayer = layers[layers.length - 1].id.replace(/\D/g, "");
+            } catch {
+                currentLayer = 0;
+            }
+            currentLayer = Number(currentLayer) + 1;
+            if ((this).id.includes('add')) {
+                $('#layersList').append('\
+                    <div id="layerPanel' + currentLayer + '" class="flex flex-col rounded-lg bg-white p-1 -mr-4">\
+                        <div class="flex flex-row justify-between">\
+                            <p id="layerTitle' + currentLayer + '" class="mx-auto font-bold text-slate-700 text-xs">\
+                                Layer ' + currentLayer + '\
+                            </p>\
+                            <div class="flex flex-row justify-end space-x-2 mt-0.5">\
+                                <div id="copyLayerbtn' + currentLayer + '">\
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="w-4 h-4 stroke-slate-500 hover:stroke-slate-800 hover:cursor-pointer hover:w-5 hover:h-5 transition-all">\
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />\
+                                    </svg>\
+                                </div>\
+                                <div id="deleteLayerbtn' + currentLayer + '">\
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="w-4 h-4 stroke-red-500 hover:stroke-red-800 hover:cursor-pointer hover:w-5 hover:h-5 transition-all">\
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />\
+                                    </svg>\
+                                </div>\
+                            </div>\
+                        </div>\
+                        <div class="grid grid-cols-2 gap-1">\
+                            <label class="my-auto text-end text-slate-500 text-xs"\
+                                    for="Nneurons' + currentLayer + '">\
+                                Number of Neurons\
+                            </label>\
+                            <input class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all"\
+                                type="number"\
+                                lang="en"\
+                                min="1"\
+                                value="15"\
+                                id="Nneurons' + currentLayer + '"/>\
+                            <label class="my-auto text-end text-slate-500 text-xs"\
+                                for="TransferFunction' + currentLayer + '">\
+                                Transfer Function\
+                            </label>\
+                            <select id="TransferFunction' + currentLayer + '"\
+                                    class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all">\
+                                <option value="tansig">\
+                                    tansig\
+                                </option>\
+                            </select>\
+                        </div>\
+                    </div>\
+                ');
+            } else {
+                if ((this).id.includes('delete')) {
+                    toDelete = (this).id.replace(/\D/g, "");
+                    document.getElementById('layerPanel' + toDelete).remove();
+                } else if ((this).id.includes('copy')) {
+                    toCopy = (this).id.replace(/\D/g, "");
+                    $('#layersList').append('\
+                        <div id="layerPanel' + currentLayer + '" class="flex flex-col rounded-lg bg-white p-1 -mr-4">\
+                            <div class="flex flex-row justify-between">\
+                                <p id="layerTitle' + currentLayer + '" class="mx-auto font-bold text-slate-700 text-xs">\
+                                    Layer ' + currentLayer + '\
+                                </p>\
+                                <div class="flex flex-row justify-end space-x-2 mt-0.5">\
+                                    <div id="copyLayerbtn' + currentLayer + '">\
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="w-4 h-4 stroke-slate-500 hover:stroke-slate-800 hover:cursor-pointer hover:w-5 hover:h-5 transition-all">\
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />\
+                                        </svg>\
+                                    </div>\
+                                    <div id="deleteLayerbtn' + currentLayer + '">\
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="w-4 h-4 stroke-red-500 hover:stroke-red-800 hover:cursor-pointer hover:w-5 hover:h-5 transition-all">\
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />\
+                                        </svg>\
+                                    </div>\
+                                </div>\
+                            </div>\
+                            <div class="grid grid-cols-2 gap-1">\
+                                <label class="my-auto text-end text-slate-500 text-xs"\
+                                        for="Nneurons' + currentLayer + '">\
+                                    Number of Neurons\
+                                </label>\
+                                <input class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all"\
+                                    type="number"\
+                                    lang="en"\
+                                    min="1"\
+                                    value="' + document.getElementById('Nneurons' + toCopy).value + '"\
+                                    id="Nneurons' + currentLayer + '"/>\
+                                <label class="my-auto text-end text-slate-500 text-xs"\
+                                    for="TransferFunction' + currentLayer + '">\
+                                    Transfer Function\
+                                </label>\
+                                <select id="TransferFunction' + currentLayer + '"\
+                                        class="self-start text-xs rounded-lg border border-slate-900/5 p-1 block h-fit w-full my-auto focus:ring-blue-600 focus:border-blue-600 transition-all">\
+                                    <option value="tansig">\
+                                        tansig\
+                                    </option>\
+                                </select>\
+                            </div>\
+                        </div>\
+                    ');
+                }
+                layers = document.querySelectorAll('[id^="layerPanel"]');
+                currentLayer = layers.length;
+                for (let i = 0; i < layers.length; i++) {
+                    $('#' + layers[i].id).attr('id', 'layerPanel' + Number(i + 1));
+                    $('#' + layers[i].id + ' [id^="delete"]').attr('id', 'deleteLayerbtn' + Number(i + 1));
+                    $('#' + layers[i].id + ' [id^="copy"]').attr('id', 'copyLayerbtn' + Number(i + 1));
+                    $('#' + layers[i].id + ' [id^="Nneurons"]').attr('id', 'Nneurons' + Number(i + 1));
+                    $('#' + layers[i].id + ' [id^="TransferFunction"]').attr('id', 'TransferFunction' + Number(i + 1));
+                    $('#' + layers[i].id + ' [id^="layerTitle"]').html('Layer ' + Number(i + 1));
+                }
+            }
+            document.getElementById("Nlayers").value = currentLayer;
+        });
+        //{% comment %} FOR HELP SECTION {% endcomment %}
+        const methodCheckBoxes = document.querySelectorAll('[id^="method"]');
+        methodCheckBoxes.forEach(function (elem) {
+            elem.addEventListener("mouseover", (event) => {
+                if (typeof $('input[name="method"]:checked').val() == 'undefined') {
+                    let method = elem.id.replace("method", "");
+                    document.getElementById('methodDetailsLabel').innerHTML = method;
+                    document.getElementById('methodHelp').classList.remove('hidden');
+                }
+            });
+            elem.addEventListener("mouseout", (event) => {
+                if (typeof $('input[name="method"]:checked').val() == 'undefined') {
+                    document.getElementById('methodHelp').classList.add('hidden');
+                }
+            });
+        });
+
+        $(document).ready(function () {
+            function checkTypeInfo() {
+                let studytype = $("input[name='studiesradio']:checked").val();
+                if (studytype.includes('extract')) {
+                    $('#extractinfo').removeClass('hidden');
+                    $('#norminfo').addClass('hidden');
+                    $('#selredinfo').addClass('hidden');
+                } else if (studytype.includes('norm')) {
+                    $('#norminfo').removeClass('hidden');
+                    $('#extractinfo').addClass('hidden');
+                    $('#selredinfo').addClass('hidden');
+                } else {
+                    $('#selredinfo').removeClass('hidden');
+                    $('#extractinfo').addClass('hidden');
+                    $('#norminfo').addClass('hidden');
+                }
+            }
+
+            checkTypeInfo();
+            window.addEventListener("load", (event) => {
+                {% if info %}
+                    document.getElementById('paneloptionsFlag').classList.add('hidden');
+                    const btn = document.getElementById("optionsSummary")
+                    btn.disabled = false;
+                    btn.classList.replace("cursor-not-allowed", "cursor-pointer");
+                {% endif %}
+                {% if previous|length == 0 %}
+                    $("#studiesTable tbody").append('Nothing to Show');
+                {% endif %}
+                layersBtns = document.querySelectorAll('[id*="Layerbtn"]');
+            });
+
+            $(document).on('change', "input[name='studiesradio']", function () {
+                $('#loading').removeClass('hidden');
+
+                let studytype = $("input[name='studiesradio']:checked").val();
+                let study = studytype.replace('extract', '').replace('selred', '').replace('normalization', '');
+                study = parseInt(study);
+                let info;
+
+                if (studytype.includes('extract')) {
+                    info = $('#extractinfo');
+                    info.find('#detailsBtn').attr('href', "/extractionStudy/" + study);
+                    $('#plotBtn').attr('href', "/plotfeature/" + study + "/" + 30 + "/" + 0);
+                    $('#plotBtn').removeClass('hidden');
+                } else if (studytype.includes('norm')) {
+                    info = $('#norminfo');
+                    info.find('#detailsBtn').attr('href', "/normalizationStudy/" + parseInt(study));
+                    $('#plotBtn').addClass('hidden');
+                } else {
+                    info = $('#selredinfo');
+                    info.find('#detailsBtn').attr('href', "/selredStudy/" + study);
+                    $('#plotBtn').addClass('hidden');
+                }
+
+                checkTypeInfo();
+
+                $('#nothingpanel').addClass('hidden');
+                $('#graphsPanel').empty();
+                $('#studiesTable').find('tbody').empty();
+                $('#datalist').empty();
+                $('#featbtnalldata').prop('checked', false);
+                $('#paneloptionsFlag').addClass('hidden');
+
+
+                let url = "{{ current.path }}";
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    data: {
+                        'studyId': study,
+                        'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                    },
+                    datatype: 'json',
+                    success: function (data) {
+                        //UPDATE PREVIOUS STUDIES TABLE
+                        if (typeof data.names !== 'undefined' && data.names.length > 0) {
+                            for (i = 0; i < data.names.length; i++) {
+                                let newRowContent = '<tr class="border-b"><th class="px-4 py-2 font-bold text-slate-900">' + data.names[i] + '</th><td class="px-1">by ' + data.res[i] + '</td><td class="px-1"><a href="/classificationStudy/' + data.ids[i] + '/" target="_blank" rel="noopener noreferrer"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="ml-2 w-4 h-4 stroke-blue-600 hover:stroke-slate-800 transition-all"><path stroke-linecap="round" stroke-line join="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg></a></td></tr>';
+                                $("#studiesTable tbody").append(newRowContent);
+                            }
+                        } else {
+                            $("#studiesTable tbody").append('Nothing to Show');
+                        }
+                        if (studytype.includes('extract')) {
+                            info.find('#extractsid').text(study);
+                            info.find('#snfeatures').text(data.snfeatures);
+                            info.find('#snsamples').text(data.snsamples);
+                            info.find('#snsamples_test').text(data.snsamples_test);
+                            info.find('#schannels').text(data.schannels);
+                            info.find('#sfilter').text(data.sfilter);
+                            info.find('#swindowstep').text(data.swindowstep);
+                            info.find('#swindowsize').text(data.swindowsize);
+                        } else if (studytype.includes('norm')) {
+                            info.find('#normid').text(study);
+                            info.find('#snfeatures').text(data.snfeatures);
+                            info.find('#snsamples').text(data.snsamples);
+                            info.find('#snsamples_test').text(data.snsamples_test);
+                            info.find('#smethod').text(data.smethod);
+                        } else {
+                            info.find('#selredsid').text(study);
+                            info.find('#snfeatures').text(data.snfeatures);
+                            info.find('#snsamples').text(data.snsamples);
+                            info.find('#snsamples_test').text(data.snsamples_test);
+                            info.find('#smethod').text(data.smethod);
+                        }
+
+                        // UPDATE DATA BUTTONS
+                        for (let i = 0; i < data.columns.length; i++) {
+                            let newRowContent = '<li><input type="checkbox" name="dataselect" id="featbtn' + data.columns[i] + '" value="' + data.columns[i] + '" class="hidden peer" /><label for="featbtn' + data.columns[i] + '" class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all"><div class="block"><div class="w-full text-xs font-bold">' + data.columns[i] + '</div></div></label></li>'
+                            $("#datalist").append(newRowContent);
+                        }
+
+                        $('#loading').addClass('hidden');
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                        $('#paneloptionsFlag').removeClass('hidden');
+                    }
+                });
+            });
+
+            // CHECK ALL DATA BUTTON
+            function updateAllDataSelect() {
+                const allChecked = $('input[name="dataselect"]').length === $('input[name="dataselect"]:checked').length;
+                $('input[name="alldataselect"]').prop('checked', allChecked);
+            }
+
+            updateAllDataSelect(); // ON LOAD CHECK IF ALL ARE CHECKED
+
+            // ON CHANGE OF INDIVIDUAL DATA BUTTONS CHECK IF ALL ARE CHECKED AND UPDATE ALL DATA BUTTON
+            $(document).on('change', 'input[name="dataselect"]', function () {
+                updateAllDataSelect();
+            });
+
+            // ALL DATA BUTTON CHANGE FUNCTION
+            $(document).on('change', "input[name='alldataselect']", function () {
+                const isChecked = this.checked;
+                document.querySelectorAll('input[name="dataselect"]').forEach(item => {
+                    item.checked = isChecked;
+                });
+            });
+
+            // SVM KERNEL OPTIONS CHANGE FUNCTION
+            $(document).on('change', "input[name='SVMKernel']", function () {
+                let kernel = $("input[name='SVMKernel']:checked").attr('id');
+                $('[id^="OptionsSVMKernel"]').each(function () {
+                    $(this).addClass('hidden');
+                    if ($(this).attr('id') === ("OptionsSVMKernel" + kernel.slice(9).toUpperCase())) {
+                        $(this).removeClass('hidden');
+                    }
+                });
+            });
+        });
+
+    </script >
+{% endblock scripts %}

@@ -1,0 +1,167 @@
+{% load tailwind_tags %}
+{% load static %}
+{% load app_extras %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=e dge" />
+        <meta name="description" content=""/>
+        <meta name="keywords" content=""/>
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
+        <title>epiweb</title>
+        <link rel="icon"
+              type="image/x-icon"
+              href="{% static 'app/img/favicon.png' %}"/>
+        <link rel="stylesheet"
+              href="https://fonts.googleapis.com/css?family=Ubuntu"/>
+        <style>
+        body {
+            font-family: "Ubuntu", sans-serif;
+        }
+        </style>
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script src="https://cdn.plot.ly/plotly-2.16.1.min.js"></script>
+        {% tailwind_css %}
+    </head>
+    <body class="bg-zinc-800">
+    {% comment %} <body style="background-image: url({% static 'app/img/backv1.jpg' %}); background-repeat: no-repeat; background-attachment: fixed; background-size: 100% 100%;"> {% endcomment %}
+        {% comment %} NAVBAR {% endcomment %}
+        <nav class="sticky top-0 z-50 container mx-auto p-8 mt-1 h-fit text-slate-800 rounded-2xl bg-zinc-800 ">
+            <div class="flex flex-row justify-between">
+                    <a class="text-5xl text-white font-bold font-mono">EPIWEB</a>
+                    <div class="flex flex-row space-x-10 items-center text-white font-bold py-2 px-4 rounded-full bg-slate-800 border-4 border-blue-600">
+                        <a href="#" class="hover:text-blue-600 hover:drop-shadow-lg transition-all">Home</a>
+                        <a href="#overview" class="hover:text-blue-600 hover:drop-shadow-lg transition-all">Overview</a>
+                        <a href="#howitworks" class="hover:text-blue-600 hover:drop-shadow-lg transition-all">How it Works</a>
+                        <a href="#help" class="hover:text-blue-600 hover:drop-shadow-lg transition-all">About</a>
+                        <a href="#help" class="hover:text-blue-600 hover:drop-shadow-lg transition-all">Support</a>
+                    </div>
+                <div class="flex flex-row h-fit w-fit justify-between">
+                    {% comment %} button {% endcomment %}
+                    <a href="{% url 'loginUser' %}"
+                    class="rounded-full p-2 font-bold font-mono text-white bg-blue-600 border-4 border-transparent hover:text-blue-600 hover:border-blue-600 hover:bg-transparent hover:shadow-sm transition-all">Sign In</a>
+                </div>
+            </div>
+        </nav>
+        <section id="hero">
+            <div class="container flex flex-row font-bold px-6 mx-auto mt-20 w-full justify-center space-x-10">
+                <div class="flex flex-col w-1/2 justify-evenly">
+                    <p class="text-6xl text-white">Web-based platform for detecting and predicting epileptic seizures.</p>
+                        {% comment %} <p class="w-4/5 text-sm -mt-10 ml-11 text-justify">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper.</p> {% endcomment %}
+                        
+                    <a href="{% url 'loginUser' %}"
+                        class="rounded-full w-fit p-2 font-bold font-mono text-white bg-blue-600 border-4 border-transparent hover:text-blue-600 hover:border-blue-600 hover:bg-transparent hover:shadow-sm transition-all">Sign In</a>
+                </div>
+                <img class="h-auto w-1/3" src="{% static 'app/img/engineerv3.svg' %}" alt="image description">
+            </div>
+        </section>
+        <section id="overview">
+            <div class="container flex flex-row mx-auto rounded-2xl w-full text-slate-900 pt-32 pb-5 justify-evenly">
+                <div class="flex flex-col h-[400px] w-1/5 p-4 rounded-lg border-2 border-zinc-500 text-white text-center space-y-10">
+                    <p class="text-blue-400 text-center font-bold text-lg">Data Visualization</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper.</p>
+                </div>
+                <div class="flex flex-col h-[400px] w-1/5 p-4 rounded-lg border-2 border-zinc-500 text-white text-center space-y-10 mt-12">
+                    <p class="text-blue-400 text-center font-bold text-lg">Feature Extraction</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper.</p>
+                </div>
+                <div class="flex flex-col h-[400px] w-1/5 p-4 rounded-lg border-2 border-zinc-500 text-white text-center space-y-10 mt-24">
+                    <p class="text-blue-400 text-center font-bold text-lg">Feature Selection | Dimensionality Reduction</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper.</p>
+                </div>
+                <div class="flex flex-col h-[400px] w-1/5 p-4 rounded-lg border-2 border-zinc-500 text-white text-center space-y-10 mt-40">
+                    <p class="text-blue-400 text-center font-bold text-lg">Classification</p>
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper.</p>
+                </div>
+            </div>
+        </section>
+        <section id="howitworks">
+            <div class="container mx-auto flex flex-row pt-32">
+                <div class="flex flex-col w-1/2 items-center">
+                    <img class="h-auto w-1/2 my-auto" src="{% static 'app/img/web.svg' %}" alt="image description">
+                </div>
+                <div class="flex flex-col w-1/2 px-4 space-y-4">
+                    <p class="text-5xl text-white ">How it Works?</p>
+                    <div class="flex flex-col p-3 rounded-lg bg-white text-sm text-slate-800 font-bold text-center">
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper.</p>
+                    </div>
+                    <div class="flex flex-col p-3 rounded-lg bg-white text-sm text-slate-800 font-bold text-center">
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper.</p>
+                    </div>
+                    <div class="flex flex-col p-3 rounded-lg bg-white text-sm text-slate-800 font-bold text-center">
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper.</p>
+                    </div>
+                    <div class="flex flex-col p-3 rounded-lg bg-white text-sm text-slate-800 font-bold text-center">
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% comment %} TODO: CAROUSEL {% endcomment %}
+        <section id="carousel" class="bg-blue-600 w-full mt-32">
+            <div class="container flex flex-row py-4 mx-auto h-96 space-x-20 overflow-auto">
+                <img class="my-auto rounded-2xl w-1/3 h-fit" src="{% static 'app/img/screenshot.png' %}" alt="image description">
+                <img class="my-auto rounded-2xl w-1/3 h-fit" src="{% static 'app/img/screenshot.png' %}" alt="image description">
+                <img class="my-auto rounded-2xl w-1/3 h-fit" src="{% static 'app/img/screenshot.png' %}" alt="image description">
+                <img class="my-auto rounded-2xl w-1/3 h-fit" src="{% static 'app/img/screenshot.png' %}" alt="image description">
+            </div>
+        </section>
+        <section class="container mx-auto rounded-2xl bg-white">
+            <div id="about" class="flex flex-col mx-auto mt-32 rounded-t-2xl w-full h-56 text-slate-800 text-center p-10">
+                <p class="font-bold text-xl">About</p>
+                <p class="w-2/3 m-auto">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper.</p>
+            </div>
+            <div id="help" class="flex flex-col mx-auto mb-32 rounded-b-2xl w-full h-56 text-slate-800 text-center p-10">
+                <p class="font-bold text-xl">Help</p>
+                <p class="w-2/3 m-auto">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper.</p>
+                <p class="m-auto">mail@mail.com &nbsp &nbsp | &nbsp &nbsp mail@mail.com</p>
+            </div>
+        </section>
+        <footer class="h-56 w-full sticky top-[150vh] bg-zinc-900">
+            <div class="container flex flex-row items-center justify-between px-6 mx-auto py-5 bottom-0">
+                <h2 class="text-5xl font-bold leading-tight text-start text-white font-mono md:text-4xl md:max-w-xl md:text left">
+                    EPIWEB
+                </h2>
+            </div>
+        </footer>
+        <button id="btn-back-to-top"
+                type="button"
+                data-mdb-ripple="true"
+                data-mdb-ripple-color="light"
+                class="hidden fixed z-90 p-3 bg-slate-900/20 text-white font-medium text-xs leading-tight uppercase rounded-full shadow-md hover:bg-slate-600 hover:shadow-lg focus:bg-slate-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-slate-800 active:shadow-lg transition duration-150 ease-in-out bottom-5 right-5"
+        >
+            <svg aria-hidden="true"
+                 focusable="false"
+                 data-prefix="fas"
+                 class="w-4 h-4"
+                 role="img"
+                 xmlns="http://www.w3.org/2000/svg"
+                 viewBox="0 0 448 512">
+                <path fill="currentColor" d="M34.9 289.5l-22.2-22.2c-9.4-9.4-9.4-24.6 0-33.9L207 39c9.4-9.4 24.6-9.4 33.9 0l194.3 194.3c9.4 9.4 9.4 24.6 0 33.9L413 289.4c-9.5 9.5-25 9.3-34.3-.4L264 168.6V456c0 13.3-10.7 24-24 24h-32c-13.3 0-24-10.7-24-24V168.6L69.2 289.1c-9.3 9.8-24.8 10-34.3.4z">
+                </path>
+            </svg>
+        </button>
+    </body>
+    {% block scripts %}
+    {% endblock scripts %}
+    <script>
+        let mybutton = document.getElementById("btn-back-to-top");
+        window.onscroll = function () {
+            scrollFunction();
+        };
+        function scrollFunction() {
+            if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+                mybutton.classList.remove("hidden");
+            } else {
+                mybutton.classList.add("hidden");
+            }
+        }
+        mybutton.addEventListener("click", backToTop);
+        function backToTop() {
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+        }
+    </script>
+</html>

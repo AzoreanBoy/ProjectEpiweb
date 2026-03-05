@@ -1,0 +1,16 @@
+{% load static %}
+<nav class="relative container mx-auto px-6 py-2 border-b-slate-900/10 border-b-2 border-x-0">
+    <div class="flex items-center justify-between">
+      <a href="{% url 'index' %}" class="text-5xl text-slate-800 font-bold font-mono">EPIWEB</a>
+      <div class="flex flex-row justify-between">
+        <p class="flex self-center text-slate-900 font-bold">{{ request.user }} |</p>
+        <div onclick="openNotFunction('notpanel')" class="self-center px-6 stroke-2 stroke-slate-900 hover:stroke-blue-600 hover:cursor-pointer transition-all">
+          <svg id="bell" class="h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+          </svg>
+        </div>
+        {% comment %}button{% endcomment %}
+        <a href="{% url 'logoutUser' %}" class="flex rounded-xl p-2 w-fit text-slate-900 font-bold ring-4 ring-white hover:bg-slate-800 hover:text-blue-600 hover:ring-blue-600 hover:shadow-sm transition-all">Logout</a>
+      </div>
+    </div>
+  </nav>

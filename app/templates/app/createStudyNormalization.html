@@ -1,0 +1,740 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block title %} EPIWEB | Normalization {% endblock %}
+{% block content %}
+    <!-- NAVBAR -->
+    {% include 'app/nav1.html' %}
+    <nav class="container w-full mx-auto my-1">
+        <ol class="flex text-xs font-bold">
+            <li>
+                <a href="{% url 'index' %}"
+                   class="align-middle text-slate-800 hover:drop-shadow-lg transition-all">Home</a>
+            </li>
+            <li>
+                <span class="text-sm text-slate-800 mx-2">&gt;</span>
+            </li>
+            <li class="align-middle font-normal text-slate-500">New Normalization Study</li>
+        </ol>
+    </nav>
+    <!-- TOP BUTTONS -->
+    <section class="container flex flex-row mx-auto mt-8 text-sm font-bold text-slate-900 justify-between">
+        <div class="flex flex-row">
+            <a href="{% url 'createStudy' 0 %}" id="btnNotCheckedPred"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5"><p
+                    class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all">Feature
+                Extraction</p></a>
+            <a href="{% url 'trainTestSplit' 0 %}" id="btnNotCheckedPred"
+                    class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5">
+                <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all">Train / Test Split</p>
+            </a>
+            <a id="btnCheckedFeatExt"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5"><p
+                    class="border-b-2 border-blue-600 w-fit">
+                Normalization</p></a>
+            <a href="{% url 'createStudySelRed' 0 %}" id="btnNotCheckedPred"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5"><p
+                    class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all">Feature
+                Selection | Dimensionality Reduction</p></a>
+            <a href="{% url 'createStudyClassification' 0 %}" id="btnNotCheckedPred"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5"><p
+                    class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all">
+                Classification</p></a>
+                {% comment %}
+                <a href="{% url 'PostProcessingStudy' 0 %}"
+                class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5 " >
+                <p class="border-b-2 border-slate-900/5w-fit group-hover:border-blue-600 transition-all" >Post-Processing</p >
+            </a >
+            {% endcomment %}
+        </div>
+        <button id="optionsSummary"
+                class="rounded-lg w-fit bg-slate-900/5 ring-4 ring-blue-600 text-center text-slate-800 shadow-lg p-2 hover:bg-slate-800 hover:text-white hover:shadow-xl cursor-pointer transition-all">
+            Create Study
+        </button>
+    </section>
+    <hr class="container mx-auto mt-5 mb-1 h-1 bg-slate-800/5"/>
+    <!-- MAIN CONTENT -->
+    <section class="container relative flex flex-col h-screen mx-auto py-2">
+        <div class="flex flex-row h-1/4">
+            <!-- DATASET SELECTION -->
+            <div class="flex flex-col bg-slate-900/5 shadow-lg rounded-lg w-3/4 ring-4 m-2 ring-slate-900/5">
+                <p class="text-sm text-slate-800 font-bold py-2 px-4">Select a dataset:</p>
+                <div class="overflow-auto px-4 py-2 flex flex-col">
+                    <form>
+                        {% csrf_token %}
+                        {% for feat in studies %}
+                            {% if feat.idstudy == studyId %}
+                                <div class="flex items-center pl-4 border border-slate-900/5 mb-1 rounded-lg">
+                                    <input checked
+                                           id="{{ feat.idstudy }}featradio"
+                                           type="radio"
+                                           value="{{ feat.idstudy }}"
+                                           name="studiesradio"
+                                           class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500"/>
+                                    <label for="{{ feat.idstudy }}featradio"
+                                           class="w-full py-2 ml-2 text-xs font-bold text-slate-900">#{{ feat.idstudy }} {{ feat.name }}</label>
+                                </div>
+                            {% else %}
+                                <div class="flex items-center pl-4 border border-slate-900/5 mb-1 rounded-lg">
+                                    <input id="{{ feat.idstudy }}featradio"
+                                           type="radio"
+                                           value="{{ feat.idstudy }}"
+                                           name="studiesradio"
+                                           class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500"/>
+                                    <label for="{{ feat.idstudy }}featradio"
+                                           class="w-full py-2 ml-2 text-xs font-bold text-slate-900">#{{ feat.idstudy }} {{ feat.name }}</label>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </form>
+                </div>
+            </div>
+            <!-- PREVIOUS STUDIES -->
+            <div class="flex flex-col w-1/4 rounded-lg m-2 py-2 px-4 border-b-2">
+                <p class="text-sm text-slate-800 font-bold mb-2">Previous Studies:</p>
+                <div class="h-1/8 overflow-auto -mx-4 px-4">
+                    <table id="studiesTable" class="w-full text-xs text-left text-slate-500">
+                        <tbody>
+                        {% for s in previous %}
+                            <tr class="border-b">
+                                <th class="px-4 py-2 font-bold text-slate-900">
+                                    {{ s.study.name }}
+                                </th>
+                                <td class="px-1">
+                                    by {{ s.study.user.username }}
+                                </td>
+                                <td class="px-1">
+                                    <a target="_blank"
+                                       rel="noopener noreferrer" href="{% url 'normalizationStudy' s.study.idstudy %}">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke-width="1.5"
+                                             class="ml-2 w-4 h-4 stroke-blue-600 hover:stroke-slate-800 transition-all">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+                                        </svg>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- OPTIONS SECTION -->
+        <div class="flex flex-row h-3/4">
+            <!-- OPTIONS -->
+            <div class="relative flex flex-col bg-slate-900/5 max-h-full w-3/4 shadow-lg rounded-lg ring-4 m-2 py-2 px-4 ring-slate-900/5 overflow-auto">
+                <p class="text-sm text-slate-800 font-bold mb-2">Normalization Options</p>
+                <!-- METHOD SELECTION -->
+                <div class="flex flex-row w-full justify-between overflow-auto">
+                    <div class="flex flex-col w-1/2 m-4 px-4">
+                        <h3 class="text-xs font-bold text-slate-700">Choose a Method:</h3>
+                        <ul class="flex flex-col space-y-3 p-2 w-full overflow-auto">
+                            <li id="methodZScore">
+                                <input type="checkbox" id="checkMethodZScore" name="method" value="Z-Score"
+                                       class="hidden peer" required>
+                                <label for="checkMethodZScore"
+                                       class="inline-flex items-center justify-between w-full px-5 py-3 text-slate-500 bg-white border-4 border-slate-200 rounded-lg cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-slate-600 hover:bg-slate-100 transition-all">
+                                    <div class="block">
+                                        <div class="w-full text-base font-semibold">Z-Score</div>
+                                        <div class="w-full text-xs">Z-Score Normalization Method</div>
+                                    </div>
+                                    <svg aria-hidden="true" class="w-6 h-6 ml-3" fill="currentColor" viewBox="0 0 20 20"
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd"
+                                              d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                                              clip-rule="evenodd"></path>
+                                    </svg>
+                                </label>
+                            </li>
+                            <li id="method01">
+                                <input type="checkbox" id="checkMethod01" name="method" value="[0,1]"
+                                       class="hidden peer" required>
+                                <label for="checkMethod01"
+                                       class="inline-flex items-center justify-between w-full px-5 py-3 text-slate-500 bg-white border-4 border-slate-200 rounded-lg cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-slate-600 hover:bg-slate-100 transition-all">
+                                    <div class="block">
+                                        <div class="w-full text-base font-semibold">[0,1]</div>
+                                        <div class="w-full text-xs">[0,1] Interval Normalization Method</div>
+                                    </div>
+                                    <svg aria-hidden="true" class="w-6 h-6 ml-3" fill="currentColor" viewBox="0 0 20 20"
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd"
+                                              d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                                              clip-rule="evenodd"></path>
+                                    </svg>
+                                </label>
+                            </li>
+                            <li id="method-11">
+                                <input type="checkbox" id="checkMethod-11" name="method" value="[-1,1]"
+                                       class="hidden peer" required>
+                                <label for="checkMethod-11"
+                                       class="inline-flex items-center justify-between w-full px-5 py-3 text-slate-500 bg-white border-4 border-slate-200 rounded-lg cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-slate-600 hover:bg-slate-100 transition-all">
+                                    <div class="block">
+                                        <div class="w-full text-base font-semibold">[-1,1]</div>
+                                        <div class="w-full text-xs">[-1,1] Interval Normalization Method</div>
+                                    </div>
+                                    <svg aria-hidden="true" class="w-6 h-6 ml-3" fill="currentColor" viewBox="0 0 20 20"
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd"
+                                              d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                                              clip-rule="evenodd"></path>
+                                    </svg>
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+                    <!--  HELP PANEL  -->
+                    {% comment %} TODO: PANEL OPTIONS -> INPUTS & SELECTS {% endcomment %}
+                    <div class="w-1/2 mt-12 mb-4 pr-10">
+                        <div id="paneloptionsZScore" class="hidden flex-col">
+                            <div class="flex flex-col h-full w-full overflow-auto pb-1 px-4 rounded-lg ring-2 ring-slate-900/5">
+                                <div class="flex flex-row justify-between mb-1">
+                                    <p class="text-sm text-slate-700 font-bold">
+                                        Help Z-score
+                                    </p>
+                                </div>
+                                <div class="text-slate-900 overflow-auto -mx-4 px-4">
+                                    <p class="text-justify text-xs">
+                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc non lectus in
+                                        sapien auctor bibendum. Phasellus tortor leo, porttitor at ligula non, volutpat
+                                        faucibus orci. Sed nisl enim, convallis malesuada nisl vitae, pellentesque
+                                        accumsan tortor. Vivamus consectetur dui gravida, sollicitudin est sit amet,
+                                        volutpat orci. Fusce placerat ex quis nibh congue, et dignissim tortor
+                                        dignissim. Integer eros tortor, accumsan et facilisis sed, fringilla luctus
+                                        nibh. Nam fringilla scelerisque tellus, nec malesuada ipsum molestie eget. Nulla
+                                        sed commodo turpis. Praesent congue congue aliquet. Proin efficitur, nibh a
+                                        pellentesque convallis, quam ex tempus nisi, sed fringilla tortor metus volutpat
+                                        nibh. Pellentesque ut iaculis ex. Nunc egestas neque eu feugiat mattis. Proin
+                                        dignissim metus ac ante pulvinar elementum. Morbi tempor mauris vel tortor
+                                        rutrum, sed facilisis sem elementum. Nulla lectus elit, maximus in porta
+                                        feugiat, sodales sed lacus.
+                                        <img src="{% static 'app/img/windowing.png' %}" class="w-full text-xs"/>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="paneloptions01" class="hidden flex-col">
+                            <div class="flex flex-col h-full w-full overflow-auto pb-1 px-4 rounded-lg ring-2 ring-slate-900/5">
+                                <div class="flex flex-row justify-between mb-1">
+                                    <p class="text-sm text-slate-700 font-bold">
+                                        Help [0,1]
+                                    </p>
+                                </div>
+                                <div class="text-slate-900 overflow-auto -mx-4 px-4">
+                                    <p class="text-justify text-xs">
+                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc non lectus in
+                                        sapien auctor bibendum. Phasellus tortor leo, porttitor at ligula non, volutpat
+                                        faucibus orci. Sed nisl enim, convallis malesuada nisl vitae, pellentesque
+                                        accumsan tortor. Vivamus consectetur dui gravida, sollicitudin est sit amet,
+                                        volutpat orci. Fusce placerat ex quis nibh congue, et dignissim tortor
+                                        dignissim. Integer eros tortor, accumsan et facilisis sed, fringilla luctus
+                                        nibh. Nam fringilla scelerisque tellus, nec malesuada ipsum molestie eget. Nulla
+                                        sed commodo turpis. Praesent congue congue aliquet. Proin efficitur, nibh a
+                                        pellentesque convallis, quam ex tempus nisi, sed fringilla tortor metus volutpat
+                                        nibh. Pellentesque ut iaculis ex. Nunc egestas neque eu feugiat mattis. Proin
+                                        dignissim metus ac ante pulvinar elementum. Morbi tempor mauris vel tortor
+                                        rutrum, sed facilisis sem elementum. Nulla lectus elit, maximus in porta
+                                        feugiat, sodales sed lacus.
+                                        <img src="{% static 'app/img/windowing.png' %}" class="w-full text-xs"/>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="paneloptions-11" class="hidden flex-col">
+                            <div class="flex flex-col h-full w-full overflow-auto pb-1 px-4 rounded-lg ring-2 ring-slate-900/5">
+                                <div class="flex flex-row justify-between mb-1">
+                                    <p class="text-sm text-slate-700 font-bold">
+                                        Help [-1,1]
+                                    </p>
+                                </div>
+                                <div class="text-slate-900 overflow-auto -mx-4 px-4">
+                                    <p class="text-justify text-xs">
+                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc non lectus in
+                                        sapien auctor bibendum. Phasellus tortor leo, porttitor at ligula non, volutpat
+                                        faucibus orci. Sed nisl enim, convallis malesuada nisl vitae, pellentesque
+                                        accumsan tortor. Vivamus consectetur dui gravida, sollicitudin est sit amet,
+                                        volutpat orci. Fusce placerat ex quis nibh congue, et dignissim tortor
+                                        dignissim. Integer eros tortor, accumsan et facilisis sed, fringilla luctus
+                                        nibh. Nam fringilla scelerisque tellus, nec malesuada ipsum molestie eget. Nulla
+                                        sed commodo turpis. Praesent congue congue aliquet. Proin efficitur, nibh a
+                                        pellentesque convallis, quam ex tempus nisi, sed fringilla tortor metus volutpat
+                                        nibh. Pellentesque ut iaculis ex. Nunc egestas neque eu feugiat mattis. Proin
+                                        dignissim metus ac ante pulvinar elementum. Morbi tempor mauris vel tortor
+                                        rutrum, sed facilisis sem elementum. Nulla lectus elit, maximus in porta
+                                        feugiat, sodales sed lacus.
+                                        <img src="{% static 'app/img/windowing.png' %}" class="w-full text-xs"/>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="paneloptionsFlag"
+                     class="hidden absolute w-full h-full backdrop-blur-[3px] bg-white/30">
+                    <div class="flex flex-col justify-evenly rounded-lg ring-4 ring-slate-900/5 w-1/2 mx-auto my-28 p-4 font-bold text-center">
+                        <p>Something went wrong.<br>The file is missing, so there's no chance on creating a study.</p>
+                    </div>
+                </div>
+                <!-- LOADING SCREEN -->
+                <div id="loading"
+                     class="hidden absolute h-full w-full backdrop-blur-sm bg-white/30 text-center">
+                    <div class="my-40">
+                        <button disabled
+                                type="button"
+                                class="text-slate-800 text-lg font-bold bg-slate-900/5 rounded-lg px-5 py-2.5 text-center mr-2 inline-flex items-center">
+                            <svg class="inline w-6 h-6 mr-3 text-slate-800 motion-safe:animate-spin"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                        opacity="0.2"
+                                        fill-rule="evenodd"
+                                        clip-rule="evenodd"
+                                        d="M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19ZM12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                        fill="currentColor"
+                                />
+                                <path
+                                        d="M2 12C2 6.47715 6.47715 2 12 2V5C8.13401 5 5 8.13401 5 12H2Z"
+                                        fill="currentColor"
+                                />
+                            </svg>
+                            Loading...
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- PATIENT FAST DETAILS AND HELP SECTION -->
+            <div class="relative flex flex-col h-full w-1/4 mr-4">
+                <!-- INFOS -->
+                <div class="flex flex-col h-1/2 w-full rounded-lg m-2 py-2 px-4 border-b-2 overflow-auto">
+                    <p class="text-sm text-slate-800 font-bold mb-2">
+                        Feature Extraction Study
+                    </p>
+                    <div class="h-[80%] overflow-auto -mx-4 px-4">
+                        <table class="w-full text-xs text-left text-slate-500">
+                            <tbody>
+                            <tr class="border-b">
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900">
+                                    ID
+                                </th>
+                                <td id="sid" class="px-4">
+                                    {{ studyId }}
+                                </td>
+                            </tr>
+                            <tr class="border-b">
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900">
+                                    Channels
+                                </th>
+                                <td id="schannels" class="px-4">
+                                    {{ schannels|length }}
+                                </td>
+                            </tr>
+                            <tr class="border-b">
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900">
+                                    Features Group
+                                </th>
+                                <td id="sfeatures" class="px-4">
+                                    {{ sfeatures|length }}
+                                </td>
+                            </tr>
+                            <tr class="border-b">
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900">
+                                    Filter
+                                </th>
+                                <td id="sfilter" class="px-4">
+                                    {{ sfilter }}
+                                </td>
+                            </tr>
+                            <tr class="border-b">
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900">
+                                    Window Size
+                                </th>
+                                <td id="swindowsize" class="px-4">
+                                    {{ swindowsize }}
+                                </td>
+                            </tr>
+                            <tr class="border-b">
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900">
+                                    Window Step
+                                </th>
+                                <td id="swindowstep" class="px-4">
+                                    {{ swindowstep }}
+                                </td>
+                            </tr>
+                            <tr class="border-b">
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900">
+                                    Number of Samples
+                                </th>
+                                <td id="snsamples" class="px-4">
+                                    {{ snsamples }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900">
+                                    Number of Features
+                                </th>
+                                <td id="snfeatures" class="px-4">
+                                    {{ snfeatures }}
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <a href="{% url 'extractionStudy' studyId %}"
+                       id="detailsBtn"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="flex flex-row group mt-auto ml-auto mb-1 rounded-lg ring-2 ring-blue-600 hover:bg-slate-800 hover:shadow-md p-1 items-center transition-all">
+                        <div class="font-bold text-xs items-center group-hover:text-white transition-all">
+                            more details
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="1.5"
+                             class="ml-2 w-4 h-4 stroke-blue-600 group-hover:stroke-white transition-all">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+                        </svg>
+                    </a>
+                </div>
+                <!-- GRAPHS -->
+                <div class="flex flex-col h-1/2 w-full rounded-lg m-2 py-2 px-4 border-b-2 overflow-auto">
+                    <p class="text-sm text-slate-800 font-bold mb-4">
+                        Extracted Feature Data
+                    </p>
+                    <div id="nothingpanel"
+                         class="hidden mx-auto my-auto text-base text-slate-500">
+                        Nothing to Show
+                    </div>
+                    <div id="graphsPanel" class="h-[68%] overflow-y-auto overflow-x-hidden -mx-4 pr-4">
+                        {% if info %}
+                            {% for feature in info.0 %}
+                                <p id="{{ feature }}div"
+                                   class="w-fit text-slate-800 text-xs font-bold mb-2 ml-4">{{ feature }}:</p>
+                                {% comment %} ! ATENCAO A ESTA TAG (VER TAMBEM A FUNCAO GET GRAPHS) {% endcomment %}
+                                {% for option in info.1|get:forloop.counter0 %}
+                                    {% for channel in info.2 %}
+                                        <div id="graphnone_{{ feature }}_{{ option }}_{{ channel }}" class="w-full">
+                                        </div>
+                                    {% endfor %}
+                                {% endfor %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'plotFeature' studyId 30 0 %}"
+                       id="plotBtn"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="flex flex-row group mt-auto ml-auto mb-1 rounded-lg ring-2 ring-blue-600 hover:bg-slate-800 hover:shadow-md p-1 items-center transition-all">
+                        <div class="font-bold text-xs items-center group-hover:text-white transition-all">
+                            more details
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="1.5"
+                             class="ml-2 w-4 h-4 stroke-blue-600 group-hover:stroke-white transition-all">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- OPTIONS SUMMARY -->
+        <div id="paneloptionsSummary"
+             class="hidden absolute w-full h-full backdrop-blur-[1px] bg-white/30">
+            <div class="flex flex-col rounded-lg ring-4 ring-slate-900/5 bg-white w-1/2 mx-auto my-20 p-4">
+                <p class="font-bold text-slate-700 mb-2">
+                    Your options summary
+                </p>
+                <div class="flex flex-wrap space-x-8 m-4 text-slate-900 justify-center">
+                    <div class="flex flex-col h-fit rounded-lg p-2 ring-2 shadow-sm ring-slate-900/5 text-xs text-center">
+                        <p class="font-bold text-slate-700 mb-2">
+                            Extracted Features Dataset
+                        </p>
+                        <div id="datasetsummary">
+                        </div>
+                    </div>
+                    <div class="flex flex-col h-fit rounded-lg p-2 ring-2 shadow-sm ring-slate-900/5 text-xs text-center">
+                        <p class="font-bold text-slate-700 mb-2">
+                            Normalization Method
+                        </p>
+                        <div id="normalizationsummary">
+                        </div>
+                    </div>
+                </div>
+                <div id="warnings"
+                     class="max-w-fit max-h-fit rounded-lg p-2 m-auto my-2 font-bold text-xs text-white text-center bg-slate-800">
+                </div>
+                <div class="flex flex-col w-full border-t pt-4 space-y-4">
+                    <!-- SET NAME FOR THE STUDY -->
+                    <div class="flex flex-row space-x-2 justify-center">
+                        <label for="setname" class="text-slate-700 text-sm font-bold my-auto">Enter a name for your
+                            normalization study:</label>
+                        <input type="text" id="setname"
+                               class="border border-slate-200 text-slate-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 w-1/2 p-1 text-xs"
+                               placeholder="ex: fp1_wavelets" required>
+                    </div>
+                    <!-- BUTTONS -->
+                    <div class="flex flex-row space-x-4 ml-auto justify-end">
+                        <button id="closeSummary"
+                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-sm items-center hover:bg-slate-800 hover:text-white transition-all">
+                            Cancel
+                        </button>
+                        <button id="submitSummary" type="submit"
+                                formmethod="post"
+                                id="confirmSummary"
+                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-sm items-center hover:bg-slate-800 hover:text-white transition-all">
+                            Submit
+                        </button>
+                        <button id="submitSummaryBlocked" type="submit"
+                                formmethod="post"
+                                id="confirmSummary"
+                                class="hidden rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-sm items-center opacity-50 cursor-not-allowed transition-all">
+                            Submit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock content %}
+
+{% block scripts %}
+    <script>
+        // FUNCTION TO PLOT THE FEATURES GRAPHS
+        function getGraphs(signal, signalTime, filter) {
+            for (let feat = 0; feat < (info[0].length); feat++) {
+                for (let featoption = 0; featoption < (info[1][feat].length); featoption++) {
+                    for (let channel = 0; channel < (info[2].length); channel++) {
+                        let traceColor = 'rgb(37, 99, 235)';
+                        const trace = {
+                            y: signal[feat][featoption][channel],
+                            x: signalTime,
+                            type: 'scatter',
+                            name: info[2][channel] + ' ' + info[1][feat][featoption],
+                            line: {
+                                color: traceColor,
+                                width: 1
+                            }
+                        };
+                        const data = [trace];
+                        const layout = {
+                            showlegend: true,
+                            legend: {
+                                size: 1,
+                                font: {
+                                    family: 'sans-serif',
+                                    size: 8,
+                                },
+                            },
+                            xaxis: {
+                                showticklabels: false,
+                                showgrid: false,
+                            },
+                            yaxis: {
+                                title: {
+                                    text: '',
+                                },
+                                showgrid: false,
+                                showticklabels: false,
+                            },
+                            height: 30,
+                            //{% comment %} TODO: COMPOR ISTO DO RESPONSIVE (O PROBLEMA ESTA EM FAZER BUILD NUMA HIDDEN DIV)  {% endcomment %}
+                            autosize: true,
+                            margin: {
+                                t: 0,
+                                b: 10,
+                                r: 0,
+                                l: 20,
+                            },
+                        }
+                        //{% comment %} ! 30/05: info[1][featoption]  ->   info[1][feat][featoption]{% endcomment %}
+                        Plotly.newPlot('graph' + filter + '_' + info[0][feat] + '_' + info[1][feat][featoption] + '_' + info[2][channel], data, layout, {
+                            displaylogo: false,
+                            responsive: true,
+                            modeBarButtonsToRemove: ['pan2d', 'select2d', 'lasso2d', 'zoomOut2d', 'zoomIn2d', 'zoom2d', 'autoscale2d']
+                        });
+                    }
+                }
+            }
+        }
+
+        // AFTER PAGE LOAD
+        window.addEventListener("load", (event) => {
+            // PREVIOUS STUDIES TABLE
+            {% if previous|length == 0 %}
+                $("#studiesTable tbody").append('Nothing to Show');
+            {% endif %}
+
+            // PLOT CURRENT STUDY
+            {% if signal %}
+                info = {{ info|safe }};
+                actualSignal = {{signal|safe}};
+                actualTime = {{signaltime|safe}};
+                getGraphs(actualSignal, actualTime, "none");
+            {% else %}
+                document.querySelectorAll('[id^="graph"]').forEach(item => {
+                    item.innerHTML = '';
+                });
+                document.getElementById('plotBtn').classList.add('hidden');
+                document.getElementById('nothingpanel').classList.remove('hidden');
+                const btn = document.getElementById("optionsSummary")
+                btn.disabled = true;
+                btn.classList.replace("cursor-pointer", "cursor-not-allowed");
+                document.getElementById("paneloptionsFlag").classList.remove('hidden');
+            {% endif %}
+        });
+
+        // DATASET SELECTION
+        $("input[name='studiesradio']").change(function () {
+            // GET THE SELECTED STUDY
+            const study = $("input[name='studiesradio']:checked").val();
+
+            // UPDATE STUDY INFOS TABLE
+            $('#graphsPanel').empty();
+            $('#studiesTable').find('tbody').empty();
+            $('#nothingpanel').addClass('hidden');
+            $('#paneloptionsFlag').addClass('hidden');
+            $('#loading').removeClass('hidden');
+
+            let url = "{{ request.path }}";
+            $.ajax({
+                url: url,
+                type: "POST",
+                data: {
+                    'studyId': study,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                datatype: 'json',
+                success: function (data) {
+                    // UPDATE STUDY INFOS TABLE AND GRAPH
+                    $('#sid').text(data.studyId);
+                    $('#schannels').text(data.schannels.length);
+                    $('#sfeatures').text(data.sfeatures.length);
+                    $('#sfilter').text(data.sfilter);
+                    $('#swindowsize').text(data.swindowsize);
+                    $('#swindowstep').text(data.swindowstep);
+                    $('#snsamples').text(data.snsamples);
+                    $('#snfeatures').text(data.snfeatures);
+                    $('#detailsBtn').attr('href', '/extractionStudy/' + data.studyId);
+                    $('#plotBtn').attr('href', '/study/plot/' + data.studyId + '/30/0');
+                    $('#plotBtn').removeClass('hidden');
+
+                    // UPDATE PREVIOUS STUDIES TABLE
+                    if (typeof data.names !== 'undefined' && data.names.length > 0) {
+                        for (i = 0; i < data.names.length; i++) {
+                            let newRowContent = '<tr class="border-b"><th class="px-4 py-2 font-bold text-slate-900">' + data.names[i] + '</th><td class="px-1">by ' + data.res[i] + '</td><td class="px-1"><a href="/selredStudy/' + data.ids[i] + '/" target="_blank" rel="noopener noreferrer"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="ml-2 w-4 h-4 stroke-blue-600 hover:stroke-slate-800 transition-all"><path stroke-linecap="round" stroke-line join="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg></a></td></tr>';
+                            $("#studiesTable tbody").append(newRowContent);
+                        }
+                    } else {
+                        $("#studiesTable tbody").append('Nothing to Show');
+                    }
+
+                    // PLOT GRAPHS
+                    if (data.signal && data.signaltime) {
+                        info = data.info;
+                        for (i = 0; i < data.info[0].length; i++) {
+                            let feature = data.info[0][i];
+                            $('#graphsPanel').append('<p id="' + feature + 'div" class="w-fit text-slate-700 text-sm font-bold mb-2 ml-4 drop-shadow-lg">' + feature + '</p>');
+                            for (j = 0; j < data.info[1][i].length; j++) {
+                                let option = data.info[1][i][j];
+                                for (k = 0; k < data.info[2].length; k++) {
+                                    let channel = data.info[2][k];
+                                    $('#graphsPanel').append('<div id="graphnone_' + feature + '_' + option + '_' + channel + '" class="w-full"></div>');
+                                }
+                            }
+                        }
+                        getGraphs(data.signal, data.signaltime, "none");
+                    } else {
+                        $('#plotBtn').addClass('hidden');
+                        $('#nothingpanel').removeClass('hidden');
+
+                        const btn = document.getElementById("optionsSummary")
+                        btn.disabled = true;
+                        btn.classList.replace("cursor-pointer", "cursor-not-allowed");
+                        $('#paneloptionsFlag').removeClass('hidden');
+                    }
+                    $('#loading').addClass('hidden');
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert(xhr.status);
+                    alert(thrownError);
+                }
+            });
+        });
+
+        // OPTIONS SUMMARY TODO: FINISH THIS
+        const optionsBtns = document.querySelectorAll('[id^="options"],[id^="close"],[id^="submit"]');
+        optionsBtns.forEach(function (elem) {
+            elem.addEventListener("click", (event) => {
+                let btn = elem.id.replace("options", "").replace("close", "").replace("submit", "");
+                document.getElementById('paneloptions' + btn).classList.toggle('hidden');
+                if (elem.id == 'optionsSummary' || elem.id == 'submitSummary') {
+                    $('#datasetsummary').text('');
+                    $('#normalizationsummary').text('');
+                    $('#warnings').text('');
+
+                    let study = $('input[name="studiesradio"]:checked').val();
+                    let method = $('input[name="method"]:checked').val();
+                    let setname = $('input[id="setname"]').val();
+                    if (elem.id == 'submitSummary') {
+                        let url = "{{ request.path }}";
+                        $.ajax({
+                            url: url,
+                            type: "POST",
+                            data: {
+                                'study': study,
+                                'method': method,
+                                'setname': setname,
+                                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                            },
+                            datatype: 'json',
+                            success: function (data) {
+                                location.replace("{% url 'index' %}")
+                            },
+                        });
+                        return
+                    }
+                    $('#datasetsummary').append('<p>' + study + '</p>');
+                    if (method == null || method == "") {
+                        $('#warnings').append('<p class="text-red-600">Choose a normalization method.</p>');
+                        $('#submitSummary').addClass('hidden');
+                        $('#submitSummaryBlocked').removeClass('hidden');
+                        $('#normalizationsummary').append('<p>' + "-" + '</p>');
+                    } else {
+                        $('#submitSummary').removeClass('hidden');
+                        $('#submitSummaryBlocked').addClass('hidden');
+                        $('#normalizationsummary').append('<p>' + method + '</p>');
+                        $('#warnings').append('<p class="text-blue-600 my-1">Depending on your choices, the task may or may not take a good amount of time.</p><p class="text-blue-600 my-1">SUBMIT and you will be notified when the task is completed.</p>');
+                    }
+                }
+            });
+        });
+
+        // CHECKBOXES
+        $('input[type="checkbox"]').on('change', function () {
+            if (this.id.includes("checkMethod") || this.name.includes("option")) {
+                if (!this.checked && this.name.includes("option")) {
+                    $(this).prop('checked', true);
+                }
+                $('input[name="' + this.name + '"]').not(this).prop('checked', false);
+            }
+        });
+        const methodsBtns = document.querySelectorAll('[id^="checkMethod"]');
+        methodsBtns.forEach(function (elem) {
+            elem.addEventListener("click", (event) => {
+                document.querySelectorAll('[id^="paneloptions"]').forEach(item => {
+                    item.classList.add("hidden");
+                });
+                if (elem.checked) {
+                    document.getElementById("paneloptions" + elem.id.replace("checkMethod", "")).classList.toggle("hidden");
+                }
+            });
+        });
+    </script>
+{% endblock scripts %}

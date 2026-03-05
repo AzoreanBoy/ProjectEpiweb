@@ -1,0 +1,158 @@
+{% load tailwind_tags %}
+{% load static %}
+{% load app_extras %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content=""/>
+        <meta name="keywords" content=""/>
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
+        <title>{% block title %}epiweb{% endblock %}</title>
+        <link rel="icon"
+              type="image/x-icon"
+              href="{% static 'app/img/favicon.png' %}"/>
+        <link rel="stylesheet"
+              href="https://fonts.googleapis.com/css?family=Ubuntu"/>
+        <style>
+        body {
+            font-family: "Ubuntu", sans-serif;
+        }
+        </style>
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script src="https://cdn.plot.ly/plotly-2.16.1.min.js"></script>
+        {% tailwind_css %}
+    </head>
+    <body class="bg-white min-h-[150vh]">
+        {% block content %}
+        {% endblock content %}
+        <div id="notpanel"
+             class="hidden absolute top-24 right-20 z-[60] flex-col rounded-lg bg-white ring-4 ring-slate-900/10 shadow-xl w-96 h-[340px] px-5 py-2 justify-between">
+            <div class="flex flex-col h-40">
+                <div class="flex flex-row justify-between">
+                    <p class="text-slate-900 text-lg font-bold">Notifications</p>
+                    <button id="clearnot" class="h-fit text-slate-700 text-xs font-bold rounded-lg bg-slate-900/5 shadow-lg border-2 border-slate-00 p-1 hover:text-white hover:border-blue-600 hover:shadow-xl hover:bg-slate-900 transition-all"> mark all as read</button>
+                </div>
+                <div id="notify" class="flex flex-col min-h-full overflow-auto px-2 mt-2"></div>
+            </div>
+            <div class="flex flex-col">
+                <p class="text-slate-900 text-lg font-bold border-t-2 pt-3">Your Studies</p>
+                <div class="flex flex-row justify-evenly space-x-3">
+                    <div class="flex flex-col p-2 rounded-lg w-1/3 text-xs text-red-500 bg-slate-800">
+                        {% if onqueue %}
+                            <p id="onqueue" class="text-xl font-mono">{{ onqueue }}</p>
+                        {% else %}
+                            <p id="onqueue" class="text-xl font-mono">-</p>
+                        {% endif %}
+                        <p class="font-bold">On Queue</p>
+                    </div>
+                    <div class="flex flex-col p-2 rounded-lg w-1/3 text-xs text-amber-500 bg-slate-800">
+                        {% if processing %}
+                            <p id="processing" class="text-xl font-mono">{{ processing }}</p>
+                        {% else %}
+                            <p id="processing" class="text-xl font-mono">-</p>
+                        {% endif %}
+                        <p class="font-bold">Processing</p>
+                    </div>
+                    <div class="flex flex-col p-2 rounded-lg w-1/3 text-xs text-blue-500 bg-slate-800">
+                        {% if completed %}
+                            <p id="completed" class="text-xl font-mono">{{ completed }}</p>
+                        {% else %}
+                            <p id="completed" class="text-xl font-mono">-</p>
+                        {% endif %}
+                        <p class="font-bold">Completed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer class="bg-zinc-900 mt-20 h-56 w-full sticky top-[150vh]">
+            <div class="container flex flex-row items-center justify-between px-6 mx-auto py-5 bottom-0">
+                <h2 class="text-5xl font-bold leading-tight text-start text-white font-mono md:text-4xl md:max-w-xl md:text left">
+                    EPIWEB
+                </h2>
+            </div>
+        </footer>
+        <button type="button"
+                data-mdb-ripple="true"
+                data-mdb-ripple-color="light"
+                class="hidden fixed z-90 p-3 bg-slate-900/20 text-white font-medium text-xs leading-tight uppercase rounded-full shadow-md hover:bg-slate-600 hover:shadow-lg focus:bg-slate-600 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-slate-800 active:shadow-lg transition duration-150 ease-in-out bottom-5 right-5"
+                id="btn-back-to-top">
+            <svg aria-hidden="true"
+                 focusable="false"
+                 data-prefix="fas"
+                 class="w-4 h-4"
+                 role="img"
+                 xmlns="http://www.w3.org/2000/svg"
+                 viewBox="0 0 448 512">
+                <path fill="currentColor" d="M34.9 289.5l-22.2-22.2c-9.4-9.4-9.4-24.6 0-33.9L207 39c9.4-9.4 24.6-9.4 33.9 0l194.3 194.3c9.4 9.4 9.4 24.6 0 33.9L413 289.4c-9.5 9.5-25 9.3-34.3-.4L264 168.6V456c0 13.3-10.7 24-24 24h-32c-13.3 0-24-10.7-24-24V168.6L69.2 289.1c-9.3 9.8-24.8 10-34.3.4z">
+                </path>
+            </svg>
+        </button>
+    </body>
+    {% block scripts %}
+    {% endblock scripts %}
+    <script>     
+        let mybutton = document.getElementById("btn-back-to-top");
+        window.onscroll = function () {
+            scrollFunction();
+        };
+        function scrollFunction() {
+            if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+                mybutton.classList.remove("hidden");
+            } else {
+                mybutton.classList.add("hidden");
+            }
+        }
+        mybutton.addEventListener("click", backToTop);
+        function backToTop() {
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+        }
+        let clearnotBtn = document.getElementById('clearnot');
+        clearnotBtn.onclick = function(){
+            $.ajax({
+                url: {% url 'clearnotifications' %},
+                type: 'get',
+                success: function(data){
+                    document.getElementById('notify').innerHTML='';
+                    const btn = document.getElementById("bell")
+                    btn.setAttribute("stroke", "black");
+                }
+            });
+        }
+        {% comment %} UPDATING NOTIFICATIONS PANEL {% endcomment %}
+        setInterval(function(){
+            $.ajax({
+                url: {% url 'notifications' %},
+                type: 'get',
+                success: function(data){
+                    $("#notify").html("");
+                    const obj = JSON.parse(data.notlist);
+                    for (let i = obj.length-1; i >= 0; i--) {
+                        const btn = document.getElementById("bell")
+                        btn.setAttribute("stroke", "red");
+                        $('#notify').append('<a href=\\checkTask\\'+obj[i].idnot+' class="my-1 px-2 py-1 rounded-lg text-xs text-slate-800 ring-2 ring-slate-900/5 hover:cursor-pointer hover:ring-blue-600 hover:shadow-lg">'+obj[i].datenot+' <strong class="font-bold mx-5">'+obj[i].description+'</strong></a>')
+                    };
+                    document.getElementById('onqueue').innerHTML=data.onqueue;
+                    document.getElementById('processing').innerHTML=data.processing;
+                    document.getElementById('completed').innerHTML=data.completed;
+                    try {
+                        document.getElementById('currentonqueue').innerHTML=data.onqueue;
+                        document.getElementById('currentprocessing').innerHTML=data.processing;
+                        document.getElementById('currentcompleted').innerHTML=data.completed;
+                        document.getElementById('currenttotal').innerHTML=data.total;
+                    } catch (error) {
+                    }
+                }
+           });
+        },5000)
+    
+        function openNotFunction(param) {
+            const nav = document.getElementById(param);
+            nav.classList.toggle("flex");
+            nav.classList.toggle("hidden");
+        }
+    </script>
+</html>

@@ -1,0 +1,910 @@
+{% extends 'app/base.html' %}
+{% block content %}
+    {% comment %} NAVBAR {% endcomment %}
+    <nav class="relative container mx-auto px-6 py-2 border-b-slate-900/10 border-b-2 border-x-0">
+        <div class="flex items-center justify-between">
+            <a href="{% url 'index' %}"
+               class="text-5xl text-slate-800 font-bold font-mono">EPIWEB</a>
+            <div class="flex flex-row justify-between">
+                <p class="flex self-center text-slate-900 font-bold">{{ request.user }} |</p>
+                <div onclick="openNotFunction('notpanel')"
+                     class="self-center px-6 stroke-2 stroke-slate-900 hover:stroke-blue-600 hover:cursor-pointer transition-all">
+                    <svg id="bell" class="h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                    </svg>
+                </div>
+                {% comment %} button {% endcomment %}
+                <a href="{% url 'logoutUser' %}"
+                   class="flex rounded-xl p-2 w-fit text-slate-900 font-bold ring-4 ring-white hover:bg-slate-800 hover:text-blue-600 hover:ring-blue-600 hover:shadow-sm transition-all">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <nav class="container w-full mx-auto my-1">
+        <ol class="flex text-xs font-bold">
+            <li>
+                <a href="{% url 'index' %}"
+                   class="align-middle text-slate-800 hover:drop-shadow-lg transition-all">Home</a>
+            </li>
+            <li>
+                <span class="text-sm text-slate-800 mx-2">&gt;</span>
+            </li>
+            <li>
+                <a href="{% url 'datav2' 'rawdata' %}"
+                   class="align-middle text-slate-800 hover:drop-shadow-lg transition-all">Data</a>
+            </li>
+            <li>
+                <span class="text-sm text-slate-800 mx-2">&gt;</span>
+            </li>
+            <li>
+                <a href="{% url 'patient' patid %}"
+                   class="align-middle text-slate-800 hover:drop-shadow-lg transition-all">Patient {{ patid }}</a>
+            </li>
+            <li>
+                <span class="text-sm font-extrabold text-slate-800 mx-2">&gt;</span>
+            </li>
+            <li class="align-middle font-normal text-slate-500">Plot</li>
+        </ol>
+    </nav>
+    <section id="plots" class="container flex flex-row my-8 mx-auto">
+        {% comment %} SIDE BAR {% endcomment %}
+        <div class="w-1/6 sticky top-3 px-3 h-screen">
+            <div class="flex flex-col bg-slate-800 rounded-lg ring-4 ring-blue-600 font-bold shadow-lg text-white text-center">
+                <p class="text-sm mt-2">Patient ID</p>
+                <p class="text-2xl font-semibold mb-2">{{ patid }}</p>
+            </div>
+            <aside class="flex flex-col h-fit mt-3 rounded-lg ring-4 ring-slate-900/5 text-xs py-2 px-6 shadow-lg overflow-auto">
+                <div class="grid grid-cols-3">
+                    {% for c in channels %}
+                        <a onclick="closePlot('{{ forloop.counter0 }}')"
+                           id="btnPlotChecked{{ forloop.counter0 }}"
+                           class="mb-4 rounded-md ring-2 mx-auto text-center font-semibold w-2/3 text-black bg-white ring-blue-600 hover:ring-slate-900/5 hover:cursor-pointer transition-all">{{ c }}</a>
+                        <a onclick="openPlot('{{ forloop.counter0 }}')"
+                           id="btnPlotNotChecked{{ forloop.counter0 }}"
+                           class="hidden mb-4 rounded-md ring-2 mx-auto text-center font-semibold w-2/3 bg-white text-black ring-slate-900/5 hover:ring-blue-600 hover:cursor-pointer transition-all">{{ c }}</a>
+                    {% endfor %}
+                </div>
+                <div class="mt-4 grid grid-cols-2">
+                    <a onclick="openAllPlots()"
+                       class="rounded-md shadow-md ring-2 mx-auto text-center font-semibold w-2/3 text-slate-900 bg-white ring-slate-900/5 hover:ring-blue-600 hover:cursor-pointer transition-all">all</a>
+                    <a onclick="closeAllPlots()"
+                       class="rounded-md shadow-md ring-2 mx-auto text-center font-semibold w-2/3 text-slate-900 bg-white ring-slate-900/5 hover:ring-blue-600 hover:cursor-pointer transition-all">none</a>
+                </div>
+            </aside>
+            <aside id="avgSubElem"
+                   class="flex flex-col h-fit mt-3 rounded-lg ring-4 ring-slate-900/5 text-xs font-bold p-2 shadow-lg overflow-auto">
+                <a id="avgBtnNotChecked"
+                   onclick="averagePlot('open')"
+                   class="rounded-lg shadow-md ring-2 mr-auto text-center font-semibold w-1/2 h-6 p-1 text-slate-900 bg-white ring-slate-900/5 hover:ring-blue-600 hover:cursor-pointer transition-all">average</a>
+                <a id="avgBtnChecked"
+                   onclick="averagePlot('close')"
+                   class="hidden rounded-lg shadow-md ring-2 mr-auto text-center font-semibold w-1/2 h-6 p-1 text-slate-900 bg-white ring-blue-600 hover:ring-slate-900/5 hover:cursor-pointer transition-all">average</a>
+                <div class="flex flex-row mt-4">
+                    <a id="subBtnNotChecked"
+                       onclick="subtractionPlot('open')"
+                       class="rounded-lg shadow-md ring-2 mr-auto text-center font-semibold w-1/2 h-6 p-1 text-slate-900 bg-white ring-slate-900/5 hover:ring-blue-600 hover:cursor-pointer transition-all">subtraction</a>
+                    <a id="subBtnChecked"
+                       onclick="subtractionPlot('close')"
+                       class="hidden rounded-lg shadow-md ring-2 mr-auto text-center font-semibold w-1/2 h-6 p-1 text-slate-900 bg-white ring-blue-600 hover:ring-slate-900/5 hover:cursor-pointer transition-all">subtraction</a>
+                    <select id="subtractSignal"
+                            name="subtractSignal"
+                            class="text-xs w-fit rounded-lg border-2 border-slate-900/5 h-6 py-0">
+                        {% for c in channels|slice:":21" %}
+                            <option value="{{ forloop.counter0 }}">
+                                {{ c }}
+                            </option>
+                        {% endfor %}
+                        <option value="Avg" class="font-bold">
+                            Avg
+                        </option>
+                    </select>
+                </div>
+            </aside>
+            <aside id="filteringElem"
+                   class="flex flex-col h-fit mt-3 rounded-lg ring-4 ring-slate-900/5 text-xs font-bold p-2 shadow-lg overflow-auto">
+                <div class="text-sm text-slate-500 text-center mb-2">Filtering</div>
+                <form type="POST" id="filter">
+                    {% csrf_token %}
+                    <div class="flex flex-col justify-start">
+                        <div class="flex flex-row items-center form-check">
+                            <input class="form-check-input appearance-none rounded-full h-4 w-4 border border-slate-900/5 bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+                                   type="radio"
+                                   name="filterradio"
+                                   id="none"
+                                   value="none"
+                                   checked>
+                            <label class="form-check-label align-middle text-slate-800" for="none">No Filter</label>
+                        </div>
+                        <div class="flex flex-row text-xs text-slate-900 font-normal text-center">
+                            <div class="w-1/4 ml-auto mr-2">cut off</div>
+                            <div class="w-1/5">order</div>
+                        </div>
+                        <div class="flex flex-row items-center form-check mb-2">
+                            <input class="form-check-input appearance-none rounded-full h-4 w-4 border border-slate-900/5 bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+                                   type="radio"
+                                   name="filterradio"
+                                   id="lowpass"
+                                   value="lowpass">
+                            <label class="form-check-label align-middle text-slate-800" for="lowpass">Low-pass</label>
+                            <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                   type="number"
+                                   lang="en"
+                                   min="0.1"
+                                   value="20"
+                                   id="lowpassfreq">
+                            <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/5 px-1"
+                                   type="number"
+                                   lang="en"
+                                   min="1"
+                                   value="5"
+                                   id="lowpassorder">
+                        </div>
+                        <div class="flex flex-row items-center form-check mb-2">
+                            <input class="form-check-input appearance-none rounded-full h-4 w-4 border border-slate-900/5 bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+                                   type="radio"
+                                   name="filterradio"
+                                   id="highpass"
+                                   value="highpass">
+                            <label class="form-check-label align-middle text-slate-800" for="highpass">High-pass</label>
+                            <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                   type="number"
+                                   lang="en"
+                                   min="0.1"
+                                   value="0.5"
+                                   id="highpassfreq">
+                            <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/5 px-1"
+                                   type="number"
+                                   lang="en"
+                                   min="1"
+                                   value="2"
+                                   id="highpassorder">
+                        </div>
+                        <div class="flex flex-row items-center form-check">
+                            <input class="form-check-input appearance-none rounded-full h-4 w-4 border border-slate-900/5 bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+                                   type="radio"
+                                   name="filterradio"
+                                   id="notch"
+                                   value="notch">
+                            <label class="form-check-label align-middle text-slate-800" for="notch">
+                                Notch
+                            </label>
+                            <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                   type="number"
+                                   lang="en"
+                                   min="0.1"
+                                   value="50"
+                                   id="notchfreq">
+                            <input class="invisible border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 h-6 w-1/5 px-1"
+                                   type="number"
+                                   lang="en"
+                                   min="1"
+                                   value="0.5"
+                                   id="notchorder">
+                        </div>
+                    </div>
+                </form>
+            </aside>
+        </div>
+        <div class="relative flex flex-col w-5/6 px-3">
+            {% comment %} TOOL BAR {% endcomment %}
+            <div class="sticky top-3 z-50">
+                <div class="flex flex-row rounded-lg shadow-lg text-xs bg-white ring-4 ring-slate-900/5 p-2 justify-between">
+                    <div class="flex flex-row rounded-lg shadow-md w-1/4 h-max py-2 ring-2 ring-slate-900/5 font-bold justify-between">
+                        <input class="border mx-auto my-auto border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 w-1/6 px-1"
+                               type="number"
+                               lang="en"
+                               min="1"
+                               value="5"
+                               id="viewWindow">
+                        <a id="viewBtnNotCheckedSecond"
+                           class="hidden rounded-lg shadow-lg w-1/5 text-center mx-auto my-auto p-1 ring-2 ring-blue-600 hover:text-white hover:bg-slate-800 hover:cursor-pointer transition-all">
+                            seconds
+                        </a>
+                        <a id="viewBtnCheckedSecond"
+                           class="rounded-lg shadow-lg w-1/5 text-center mx-auto my-auto p-1 ring-2 ring-blue-600 text-white bg-slate-800">
+                            seconds
+                        </a>
+                        <a id="viewBtnNotCheckedHour"
+                           class="rounded-lg shadow-lg w-1/5 text-center mx-auto my-auto p-1 ring-2 ring-blue-600 hover:text-white hover:bg-slate-800 hover:cursor-pointer transition-all">
+                            hours
+                        </a>
+                        <a id="viewBtnCheckedHour"
+                           class="hidden rounded-lg shadow-lg w-1/5 text-center mx-auto my-auto p-1 ring-2 ring-blue-600 text-white bg-slate-800">
+                            hours
+                        </a>
+                        <a id="viewBtnNotCheckedDay"
+                           class="rounded-lg shadow-lg w-1/5 text-center mx-auto my-auto p-1 ring-2 ring-blue-600 hover:text-white hover:bg-slate-800 hover:cursor-pointer transition-all">
+                            day
+                        </a>
+                        <a id="viewBtnCheckedDay"
+                           class="hidden rounded-lg shadow-lg w-1/5 text-center mx-auto my-auto p-1 ring-2 ring-blue-600 text-white bg-slate-800">
+                            day
+                        </a>
+                        <a id="submitViewBtn"
+                           class="w-fit mx-auto my-auto stroke-slate-800 hover:stroke-blue-600 hover:cursor-pointer transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke-width="1.5"
+                                 class="w-8 h-8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12.75 15l3-3m0 0l-3-3m3 3h-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </a>
+                    </div>
+                    <div class="hidden flex-col w-[1/7] items-center">
+                        <div class="border-b-2 border-slate-800 text-slate-800 text-center font-bold mb-2">
+                            number of samples
+                        </div>
+                        <p id="nsamples"
+                           class="rounded-lg font-bold text-slate-900 text-center bg-slate-white ring-2 ring-slate-900/5 w-1/2 mx-2 p-1">
+                            {{ signaltime|length }}
+                        </p>
+                    </div>
+                    <div class="flex flex-col w-[36%]">
+                        <div class="border-b-2 border-slate-800 text-slate-800 text-center font-bold mb-2">
+                            time interval
+                        </div>
+                        <div class="flex flex-row font-bold">
+                            <p id="windowbegin"
+                               class="rounded-lg text-slate-900 text-start bg-slate-white ring-2 ring-slate-900/5 w-1/2 mx-2 p-1">
+                                {{ signaltime.0 }}
+                            </p>
+                            <p>
+                                -
+                            </p>
+                            <p id="windowend"
+                               class="rounded-lg text-slate-900 text-end bg-slate-white ring-2 ring-slate-900/5 w-1/2 mx-2 p-1">
+                                {{ signaltime|last }}
+                            </p>
+                        </div>
+                        <div id="eventsoptions"
+                             class="hidden flex-row border-t-2 border-slate-900/5 mt-2 px-2 pt-2 justify-between">
+                            <p class="font-bold text-xs my-auto">
+                                Jump to:
+                            </p>
+                            <form type="POST"
+                                  name="eventinterval"
+                                  id="eventinterval"
+                                  class="flex flex-row space-x-4">
+                                {% csrf_token %}
+                                <select id="event"
+                                        name="event"
+                                        class="font-bold text-xs w-fit h-7 rounded-lg border-2 border-slate-900/5 py-0">
+                                    {% for e in events %}   
+                                        <option value="{{ e.eeg_onset }}">
+                                            {{ e.type }} | {{ e.eeg_onset }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit"
+                                        formmethod="post"
+                                        id="btn"
+                                        class="h-fit w-fit py-1 px-2 my-auto rounded-lg ring-2 ring-blue-600 font-bold text-xs text-slate-900 hover:cursor-pointer hover:text-white hover:bg-slate-800 transition-all">
+                                    GO
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="flex flex-col w-1/5">
+                        <div class="border-b-2 border-slate-800 text-slate-800 text-center font-bold mb-2">
+                            window
+                        </div>
+                        <div class="flex flex-row w-full mx-auto font-bold">
+                            {% comment %} TODO quando for pedida a ultima window {% endcomment %}
+                            <a id="previousbtnBlocked"
+                               class="hidden rounded-lg shadow-lg text-start ring-2 w-1/3 mx-2 p-1 text-slate-900/5 bg-white ring-slate-900/5">&lt; previous</a>
+                            <a id="previousbtn"
+                               class="rounded-lg shadow-lg text-start w-1/3 mx-2 p-1 ring-2 ring-blue-600 font-bold text-xs text-slate-900 hover:text-white hover:bg-slate-800 hover:cursor-pointer transition-all">&lt; previous</a>
+                            <a id="nextbtn"
+                               class="rounded-lg shadow-lg text-end w-1/3 mx-2 p-1 ring-2 ring-blue-600 font-bold text-xs text-slate-900 hover:text-white hover:bg-slate-800 hover:cursor-pointer transition-all">next &gt;</a>
+                            <button onclick="openFunction()"
+                                    class="rounded-lg shadow-lg text-end w-fit mx-2 p-1 ring-2 ring-blue-600 font-bold text-xs text-slate-900 hover:text-white hover:bg-slate-800 transition-all">
+                                more
+                            </button>
+                        </div>
+                        <div id="windowoptions"
+                             class="hidden flex-col border-t-2 border-slate-900/5 mt-2 px-2 pt-2 justify-between">
+                            <form type="POST"
+                                  name="timeinterval"
+                                  id="timeinterval"
+                                  class="flex flex-row justify-between">
+                                {% csrf_token %}
+                                <input type="datetime-local"
+                                       step="1"
+                                       id="time"
+                                       name="time"
+                                       value="{{ begin }}"
+                                       min="{{ begin }}"
+                                       max="{{ close }}"
+                                       class="text-xs w-fit rounded-lg border-transparent h-7 py-0 text-center"/>
+                                <button type="submit"
+                                        formmethod="post"
+                                        id="btn"
+                                        class="h-fit w-fit py-1 px-2 my-auto rounded-lg ring-2 ring-blue-600 font-bold text-xs text-slate-900 hover:cursor-pointer hover:text-white hover:bg-slate-800 transition-all">
+                                    GO
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% comment %} PLOTS {% endcomment %}
+            <div class="flex flex-col mt-5" id="divplots">
+                {% for c in channels %}
+                    <div id="graphnone{{ forloop.counter0 }}" class="w-full">
+                    </div>
+                    <div id="graphlowpass{{ forloop.counter0 }}" class="w-full hidden">
+                    </div>
+                    <div id="graphhighpass{{ forloop.counter0 }}" class="w-full hidden">
+                    </div>
+                    <div id="graphnotch{{ forloop.counter0 }}" class="w-full hidden">
+                    </div>
+                    <div id="graphNext{{ forloop.counter0 }}" class="w-full hidden">
+                    </div>
+                    <div id="graphPrevious{{ forloop.counter0 }}" class="w-full hidden">
+                    </div>
+                    <div id="graphSub{{ forloop.counter0 }}" class="w-full hidden">
+                    </div>
+                {% endfor %}
+                <div id="graphAvg" class="w-full hidden">
+                </div>
+            </div>
+            {% comment %} LOADING SCREEN {% endcomment %}
+            <div id="loading"
+                 class="hidden absolute h-full w-full backdrop-blur-sm bg-white/30 text-center">
+                <div class="my-40">
+                    <button disabled
+                            type="button"
+                            class="text-slate-800 text-lg font-bold bg-slate-900/5 rounded-lg px-5 py-2.5 text-center mr-2 inline-flex items-center">
+                        <svg class="inline w-6 h-6 mr-3 text-slate-800 motion-safe:animate-spin"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path
+                            opacity="0.2"
+                            fill-rule="evenodd"
+                            clip-rule="evenodd"
+                            d="M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19ZM12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                            fill="currentColor"
+                            />
+                            <path
+                            d="M2 12C2 6.47715 6.47715 2 12 2V5C8.13401 5 5 8.13401 5 12H2Z"
+                            fill="currentColor"
+                            />
+                        </svg>
+                        Loading...
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock content %}
+{% block scripts %}
+    <script>
+        function getGraphs(signal, signalTime, filter){
+            let beginevent, endevent;
+            let flag = [];
+            let eventshape = [];
+            let begin = signalTime[0];
+            let end = signalTime[[signalTime.length - 1]];
+            for (let i=0; i<events.length; i++){
+                if (begin<events[i]['begin'] && events[i]['begin']<end){
+                    beginevent = events[i]['begin'];
+                    if (events[i]['end']<end) {
+                        flag.push('An event occured.');
+                        endevent = events[i]['end'];
+                    } else {
+                        flag.push('An event started.');
+                        endevent = end;
+                    }
+                } else if (events[i]['begin']<begin && events[i]['end']>begin) {
+                    beginevent = begin;
+                    if (events[i]['end']<end) {
+                        flag.push('An event finished.');
+                        endevent = events[i]['end'];
+                    } else {
+                        flag.push('An event is still occuring.');
+                        endevent = end;
+                    }
+                } else {
+                    continue;
+                }
+                eventshape.push({
+                    type: 'rect',
+                    xref: 'x',
+                    yref: 'paper',
+                    x0: beginevent,
+                    y0: 0,
+                    x1: endevent,
+                    y1: 1,
+                    fillcolor: 'rgb(15, 23, 42)',
+                    opacity: 0.2,
+                    layer: 'below',
+                    editable: true,
+                    line: {
+                        width: 0,
+                    },
+                    label: {
+                        text: 'seizure',
+                        font: { size: 10, color: 'green' },
+                        textposition: 'top center',
+                    },
+                });
+            }
+            console.log('Events: ', flag, eventshape)
+            if (filter !== 'Avg'){
+                for (let index = 0; index < (signal.length); index++) {
+                    let traceColor = 'rgb(37, 99, 235)';
+                    if (filter == 'Sub') {
+                        traceColor = 'rgb(15, 38, 89)';
+                    } 
+                    const trace = {
+                        y: signal[index],
+                        x: signalTime,
+                        type: 'scatter',
+                        name: {{channels|safe}}[index],
+                        line: {
+                            color: traceColor,
+                        }
+                    };                
+                    const data=[trace];
+                    const layout={
+                        showlegend: true,
+                        xaxis:{
+                            showticklabels: false,
+                            showgrid: false,
+                        },
+                        yaxis: {
+                            title: {
+                                text: {{channels|safe}}[index],
+                            },
+                            showgrid: false,
+                            showticklabels: false,
+                        },
+                        height: 50,
+                        //{% comment %} TODO: COMPOR ISTO DO RESPONSIVE (O PROBLEMA ESTA EM FAZER BUILD NUMA HIDDEN DIV)  {% endcomment %}
+                        width: 1200,
+                        margin: {
+                            t: 0,
+                            b: 0,
+                            r: 0,
+                        },
+                        shapes: eventshape,
+                    }
+                    Plotly.newPlot('graph'+filter+index, data, layout, {displaylogo: false, responsive: true, modeBarButtonsToRemove: ['pan2d','select2d','lasso2d','zoomOut2d','zoomIn2d','zoom2d','autoscale2d']});            
+                }      
+            } else {
+                const trace = {
+                    y: signal,
+                    x: signalTime,
+                    type: 'scatter',
+                    name: 'Avg',
+                    line: {
+                        color: 'rgb(109, 153, 252)',
+                    }
+                };                
+                const data=[trace];
+                const layout={
+                    showlegend: true,
+                    xaxis:{
+                        showticklabels: false,
+                        showgrid: false,
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Avg',
+                        },
+                        showgrid: false,
+                        showticklabels: false,
+                    },
+                    height: 50,
+                    //{% comment %} TODO: COMPOR ISTO DO RESPONSIVE (O PROBLEMA ESTA EM FAZER BUILD NUMA HIDDEN DIV)  {% endcomment %}
+                    width: 1200,
+                    margin: {
+                        t: 0,
+                        b: 0,
+                        r: 0,
+                    },
+                    shapes: eventshape,
+                };
+                Plotly.newPlot('graph'+filter, data, layout, {displaylogo: false, responsive: true, modeBarButtonsToRemove: ['pan2d','select2d','lasso2d','zoomOut2d','zoomIn2d','zoom2d','autoscale2d']});                  
+            }
+            processingFlag = false;
+            document.getElementById('loading').classList.add('hidden');
+        }
+    
+        function openFunction() {
+            const navs = [document.getElementById("windowoptions"), document.getElementById("eventsoptions")];
+            navs.forEach(nav => nav.classList.toggle("flex"));
+            navs.forEach(nav => nav.classList.toggle("hidden"));
+        }
+
+        function openPlot(plotid) {
+            const filter = $("input[name='filterradio']:checked").val();
+            const plt = document.getElementById("graph"+filter+plotid);
+            const btnplt1 = document.getElementById("btnPlotChecked"+plotid);
+            const btnplt2 = document.getElementById("btnPlotNotChecked"+plotid);
+            plt.classList.remove('hidden');
+            btnplt1.classList.toggle("hidden");
+            btnplt2.classList.toggle("hidden");
+        }
+
+        function closePlot(plotid) {
+            const filter = $("input[name='filterradio']:checked").val();
+            const plt = document.getElementById("graph"+filter+plotid);
+            const btnplt1 = document.getElementById("btnPlotChecked"+plotid);
+            const btnplt2 = document.getElementById("btnPlotNotChecked"+plotid);
+            plt.classList.add('hidden');
+            btnplt1.classList.toggle("hidden");
+            btnplt2.classList.toggle("hidden");
+        }
+
+        function openAllPlots() {
+            const filter = $("input[name='filterradio']:checked").val();
+            const pltbtns1 = document.querySelectorAll('[id*="btnPlotChecked"]');
+            pltbtns1.forEach(item => item.className = item.className.replace("hidden", ""));
+            const pltbtns2 = document.querySelectorAll('[id*="btnPlotNotChecked"]');
+            pltbtns2.forEach(item => item.classList.add('hidden'));
+            const plts = document.querySelectorAll('[id^="graph'+filter+'"]');
+            plts.forEach(item => item.classList.remove('hidden'));
+        }
+
+        function closeAllPlots() {
+            const pltbtns2 = document.querySelectorAll('[id*="btnPlotNotChecked"]');
+            pltbtns2.forEach(item => item.className = item.className.replace("hidden", ""));
+            const pltbtns1 = document.querySelectorAll('[id*="btnPlotChecked"]');
+            pltbtns1.forEach(item => item.classList.add('hidden'));
+            const plts = document.querySelectorAll('[id^="graph"]');
+            plts.forEach(item => item.classList.add('hidden'));
+            document.getElementById('subBtnChecked').classList.add('hidden');
+            document.getElementById('subBtnNotChecked').classList.remove('hidden');
+            document.getElementById('avgBtnChecked').classList.add('hidden');
+            document.getElementById('avgBtnNotChecked').classList.remove('hidden');   
+        }
+
+        function averagePlot(option) {
+            if (option=='open'){
+                // {% comment %} TODO: SERA PRECISO ESTE IF?  {% endcomment %}
+                if (!$.trim( $('#graphAvg').html() ).length){
+                    processingFlag = true;
+                    document.getElementById('loading').classList.remove('hidden');
+                    let result = [];
+                    for(let i = 0; i < actualSignal[0].length; i++){
+                        let num = 0;
+                        //{% comment %} TODO: É SEMPRE 21?????  {% endcomment %}
+                        for(let j = 0; j < 21; j++){ 
+                            num += actualSignal[j][i];
+                        }
+                        result.push(num / actualSignal.length);
+                    }
+                    getGraphs(result, actualTime, 'Avg')
+                } 
+                closeAllPlots();
+                document.getElementById('none').checked = true;
+                document.getElementById('avgBtnChecked').classList.remove("hidden");
+                document.getElementById('avgBtnNotChecked').classList.add("hidden");
+                document.getElementById('graphAvg').classList.remove("hidden");
+            } else {
+                document.getElementById('avgBtnChecked').classList.add("hidden");
+                document.getElementById('avgBtnNotChecked').classList.remove("hidden");
+                document.getElementById('graphAvg').classList.add("hidden");
+            }
+        }
+
+        document.getElementById("subtractSignal").onchange = function() {
+            if (!document.getElementById('subBtnChecked').classList.contains('hidden')) {
+                subtractionPlot('open')
+            }
+        }
+        function subtractionPlot(option) {
+            //{% comment %} TODO: NAO ESTA A APARECER O LOADING SCREEN. PORQUE? POSSIVELMENTE DEVIDO AO INLINE ONCLICK EVENT {% endcomment %}
+            processingFlag = true;
+            document.getElementById('loading').classList.remove('hidden');
+            const plts = document.querySelectorAll('[id^="graphSub"]');
+            if (option=='open'){
+                const e = document.getElementById("subtractSignal");
+                const value = e.value;
+                let toSubtract = [];
+                if (value == 'Avg') {
+                    for(let i = 0; i < actualSignal[0].length; i++){
+                        let num = 0;
+                        //{% comment %} TODO: É SEMPRE 21?????  {% endcomment %}
+                        for(let j = 0; j < 21; j++){ 
+                            num += actualSignal[j][i];
+                        }
+                        toSubtract.push(num / actualSignal.length);
+                    }
+                } else {
+                    toSubtract = actualSignal[value];
+                }
+                let result = [];
+                for(let i = 0; i < 21; i++){
+                    let tmp=[]
+                    for(let j = 0; j<=toSubtract.length-1; j++) {
+                        tmp.push(actualSignal[i][j] - toSubtract[j]);
+                    }
+                    result.push(tmp);
+                }
+                getGraphs(result, actualTime, 'Sub');
+                closeAllPlots();
+                document.getElementById('none').checked = true;
+                document.getElementById('subBtnChecked').classList.remove("hidden");
+                document.getElementById('subBtnNotChecked').classList.add("hidden");
+                plts.forEach(item => item.classList.remove("hidden"));
+
+            } else {
+                processingFlag = true;
+                document.getElementById('loading').classList.add('hidden');
+                openAllPlots();
+                document.getElementById('subBtnChecked').classList.add("hidden");
+                document.getElementById('subBtnNotChecked').classList.remove("hidden");
+                plts.forEach(item => item.classList.add("hidden"));
+            }
+        }
+
+        window.addEventListener("load", (event) => {
+            actualSignal = {{signal|safe}};
+            actualTime = {{signaltime|safe}};
+            actualWindow = {{ window }};
+            actualStep = {{ step }}; 
+            processingFlag = false;
+            events = {{ evts|safe }};
+            console.log(events)
+            viewSelected = 'Second';
+            setPreviousBtn();
+            setViewElems('Second');
+            getGraphs(actualSignal, actualTime, "none");
+            getPreviousNextPlot('both');
+        });
+
+        function setViewElems(option) {
+            document.getElementById('viewBtnChecked'+option).classList.remove('hidden');
+            document.getElementById('viewBtnNotChecked'+option).classList.add('hidden');
+            document.querySelectorAll('[id^="viewBtnChecked"]:not([id^="viewBtnChecked' + option + '"])').forEach(item => item.classList.add('hidden'));
+            document.querySelectorAll('[id^="viewBtnNotChecked"]:not([id^="viewBtnNotChecked' + option + '"])').forEach(item => item.classList.remove('hidden'));
+            viewSelected=option;
+        }
+
+        const viewBtns = document.querySelectorAll('[id^="viewBtnNotChecked"]');
+        viewBtns.forEach(function(elem) {
+            elem.addEventListener("click", (event) => {
+                const view = elem.id.replace('viewBtnNotChecked','');
+                setViewElems(view);
+            });
+        });
+        
+        const steps={'Second':256, 'Hour':921600, 'Day':22118400};
+        $("#submitViewBtn").click(changeWindowView);
+        function changeWindowView(){
+            const view = viewSelected;
+            if (processingFlag) {
+                alert('Previous request is still processing.');
+                return;
+            }
+            processingFlag = true;
+            document.getElementById('loading').classList.remove('hidden');
+            const url = "{% url 'plotpatientAsync' patid %}";
+            const viewWindow = document.getElementById('viewWindow').value;
+            const newStep = steps[view]*viewWindow;
+            const startNewWindow = actualTime[0].split('.')[0];
+            $.ajax({        
+                url: url,        
+                type: "POST",
+                data:{
+                    'option': 'changing',
+                    'time': startNewWindow,
+                    'step': newStep,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                datatype:'json',
+                success: function(data) {
+                    getGraphs(data.signal, data.signaltime, 'none');
+                    actualStep = newStep;
+                    actualSignal = data.signal;
+                    actualTime = data.signaltime;
+                    actualWindow = data.window;
+                    setPreviousBtn();
+                    document.getElementById('nsamples').innerHTML = actualTime.length;
+                    document.getElementById('windowbegin').innerHTML = actualTime[0];
+                    document.getElementById('windowend').innerHTML = actualTime.slice(-1);
+                    getPreviousNextPlot('both');
+                    closeAllPlots();
+                    document.getElementById('none').checked = true;
+                    openAllPlots();
+                    if (view == 'Second') {
+                        document.getElementById('filteringElem').classList.remove('hidden');
+                    } else {
+                        document.getElementById('filteringElem').classList.add('hidden');
+                    }
+                }
+            }); 
+        }
+        
+
+        {% comment %} TODO: THE SAME THING TO NEXT BUTTON {% endcomment %}
+        function setPreviousBtn() {
+            if (actualWindow == 0){
+                document.getElementById("previousbtnBlocked").classList.remove("hidden");
+                document.getElementById("previousbtn").classList.add("hidden");
+            
+            } else {
+                document.getElementById("previousbtnBlocked").classList.add("hidden");
+                document.getElementById("previousbtn").classList.remove("hidden");
+            }
+        }
+
+        {% comment %} TODO: ASYNC FOR NEXT AND PREVIOUS   {% endcomment %}
+        $("#nextbtn").click(nextPlot);
+        $("#previousbtn").click(previousPlot);
+        function previousPlot() {
+            showPreviousNextPlot('Previous');
+        }
+        function nextPlot() {
+            showPreviousNextPlot('Next');
+        }
+        function showPreviousNextPlot(window) {
+            if (processingFlag) {
+                document.getElementById('loading').classList.remove('hidden');
+                return;
+            }
+            if (window == "Previous") {
+                actualWindow = actualWindow-1;
+                nextSignal = actualSignal;
+                actualSignal = previousSignal;
+                nextTime = actualTime;
+                actualTime = previousTime;
+                for (let index = 0; index < (actualSignal.length); index++) {
+                    const nextDiv = $('#graphNext'+index);
+                    const previousDiv = $('#graphPrevious'+index);
+                    const noneDiv = $('#graphnone'+index);
+                    previousDiv.attr('id','graphnone'+index);
+                    noneDiv.attr('id','graphNext'+index);
+                    nextDiv.attr('id','graphPrevious'+index);
+                    nextDiv.innerHTML='';
+                }
+            } else {
+                actualWindow = actualWindow+1;
+                previousSignal = actualSignal;
+                actualSignal = nextSignal;
+                previousTime = actualTime;
+                actualTime = nextTime;
+                for (let index = 0; index < (actualSignal.length); index++) {
+                    const nextDiv = $('#graphNext'+index);
+                    const previousDiv = $('#graphPrevious'+index);
+                    const noneDiv = $('#graphnone'+index);
+                    nextDiv.attr('id','graphnone'+index);
+                    noneDiv.attr('id','graphPrevious'+index);
+                    previousDiv.attr('id','graphNext'+index);
+                    previousDiv.innerHTML='';
+                }
+            }
+            setPreviousBtn();
+            closeAllPlots();
+            const plts = document.querySelectorAll('[id^="graphnone"]');
+            const pltsFilters = document.querySelectorAll('[id^="graph"]:not([id^="graphnone"], [id^="graphNext"], [id^="graphPrevious"])');
+            pltsFilters.forEach(item => item.innerHTML='');
+            plts.forEach(item => item.classList.remove("hidden"));
+            document.getElementById('none').checked = true;
+            document.getElementById('nsamples').innerHTML = actualTime.length;
+            document.getElementById('windowbegin').innerHTML = actualTime[0];
+            document.getElementById('windowend').innerHTML = actualTime.slice(-1);
+            openAllPlots();
+            getPreviousNextPlot(window);
+        }; 
+        function getPreviousNextPlot(option) {
+            processingFlag = true;
+            console.log('\n', option, '\nactual window: ', actualWindow,' beginTime: ', actualTime[0]);
+            const url = "{% url 'plotpatientAsync' patid %}";
+            const windows = (option == 'both') ? ([actualWindow-1, actualWindow+1]) : ((option == 'Previous') ? ([actualWindow-1]) : ([actualWindow+1]));
+            windows.forEach(function (win, index) {
+                console.log('processing window: ', win)
+                $.ajax({        
+                    url: url,        
+                    type: "POST",
+                    data:{
+                        'window': win, 
+                        'step': actualStep, 
+                        'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                    },
+                    datatype:'json',
+                    success: function(data) {
+                        signal = data.signal;
+                        signalTime = data.signaltime;
+                        if (option == 'both' && index==0) {
+                            previousSignal = data.signal;
+                            previousTime = data.signaltime;
+                            getGraphs(signal, signalTime, 'Previous');
+                        } else if (option == 'both' && index==1) {
+                            nextSignal = data.signal;
+                            nextTime = data.signaltime;
+                            getGraphs(signal, signalTime, 'Next');
+                        } else if (option == 'Previous') {
+                            previousSignal = data.signal;
+                            previousTime = data.signaltime;
+                            getGraphs(signal, signalTime, option); 
+                        } else {
+                            nextSignal = data.signal;
+                            nextTime = data.signaltime;
+                            getGraphs(signal, signalTime, option);
+                        }
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                      alert(xhr.status);
+                      alert(thrownError);
+                    }
+                });   
+            });
+        };
+
+        function updateFilterGraphs(filter, newCutoff, newOrder) {
+            processingFlag = true;
+            const signal = actualSignal;
+            const sampfreq ={{sampfreq|safe}};
+            const config = [newCutoff, newOrder];
+            const url =  "{{ current.path }}";
+
+            order[filter] = newOrder;
+            cutoff[filter] = newCutoff;
+
+            $.ajax({        
+                url: url,        
+                type: "POST",
+                data:{
+                    'data[][]':signal,
+                    'sampfreq':sampfreq,
+                    'filter': filter,
+                    'config[]': config, 
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                datatype:'json',
+                success: function(data) {
+                    getGraphs(data.data, actualTime, filter);
+                }
+            });        
+        };
+            
+        const cutoff=[];
+        const order=[];
+
+        const freqElements = document.querySelectorAll('[id*="freq"],[id*="order"]');
+        freqElements.forEach(function(elem) {
+            elem.addEventListener("focus", (event) => {
+                oldValue = elem.value;
+            });
+            elem.addEventListener("focusout", (event) => {
+                if( oldValue != elem.value ){
+                    const filter = elem.id.replace('freq','').replace('order','');
+                    if($("input[name='filterradio']:checked").val() == filter) {
+                        newOrder = document.getElementById(filter+'order').value;
+                        newCutoff = document.getElementById(filter+'freq').value;
+                        updateFilterGraphs(filter, newCutoff, newOrder);   
+                        if (processingFlag) {
+                            document.getElementById('loading').classList.remove('hidden');
+                        }
+                    }
+                }
+            });
+        });
+
+        {% comment %} TODO: QUAL A MELHOR ESTRATEGIA? DESTA FORMA OU CALCULANDO OS GRAFICOS DESDE O LOAD DA PAGINA? {% endcomment %}
+        {% comment %} TODO: MANTER FECHADOS OS GRAFICOS FECHADOS PARA O ANTERIOR FILTRO  {% endcomment %}
+        $("input[name='filterradio']").change(function(){
+            closeAllPlots();
+            const filter = $("input[name='filterradio']:checked").val();
+            if (filter != "none") {
+                newOrder = document.getElementById(filter+'order').value;
+                newCutoff = document.getElementById(filter+'freq').value;
+                if( !$.trim( $('#graph'+filter+'0').html() ).length || newOrder != order[filter] || newCutoff != cutoff[filter]) {
+                    updateFilterGraphs(filter, newCutoff, newOrder);   
+                    if (processingFlag) {
+                        document.getElementById('loading').classList.remove('hidden');
+                    }
+                }                
+            }
+            const plts1 = document.querySelectorAll('[id^="graph"]:not([id^="graph'+filter+'"])');
+            const plts2 = document.querySelectorAll('[id^="graph'+filter+'"]');
+            plts1.forEach(item => item.classList.add("hidden"));
+            plts2.forEach(item => item.classList.remove("hidden"));
+            openAllPlots();
+        });
+    </script>
+{% endblock scripts %}

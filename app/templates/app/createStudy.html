@@ -1,0 +1,1771 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block title %} EPIWEB | Feature Extraction {% endblock title %}
+{% block content %}
+    <!-- NAVBAR -->
+    {% include "app/nav1.html" %}
+    <nav class="container w-full mx-auto my-1" >
+        <ol class="flex text-xs font-bold" >
+            <li >
+                <a href="{% url 'index' %}"
+                   class="align-middle text-slate-800 hover:drop-shadow-lg transition-all" >Home</a >
+            </li >
+            <li >
+                <span class="text-sm text-slate-800 mx-2" >&gt;</span >
+            </li >
+            <li class="align-middle font-normal text-slate-500" >New Extraction Study</li >
+        </ol >
+    </nav >
+    <!-- TOP BUTTONS -->
+    <section class="container flex flex-row mx-auto mt-8 text-sm font-bold text-slate-900 justify-between" >
+        <div class="flex flex-row" >
+            <a id="btnCheckedFeatExt"
+               class="mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-blue-600 w-fit" >Feature Extraction</p >
+            </a >
+            <a href="{% url 'trainTestSplit' 0 %}" id="btnNotCheckedPred"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >Train / Test
+                    Split</p >
+            </a >
+            <a href="{% url 'createNormalizationStudy' 0 %}" id="btnNotCheckedPred"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >
+                    Normalization</p >
+            </a >
+            <a href="{% url 'createStudySelRed' 0 %}" id="btnNotCheckedPred"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >Feature
+                    Selection | Dimensionality Reduction</p >
+            </a >
+            <a href="{% url 'createStudyClassification' 0 %}" id="btnNotCheckedPred"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >
+                    Classification</p >
+            </a >
+            {% comment %}
+            <a href="{% url 'PostProcessingStudy' 0 %}"
+            class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5 " >
+            <p class="border-b-2 border-slate-900/5w-fit group-hover:border-blue-600 transition-all" >Post-Processing</p >
+        </a >
+        {% endcomment %}
+        </div >
+        <button id="optionsSummary"
+                class="rounded-lg w-fit bg-slate-900/5 ring-4 ring-blue-600 text-center text-slate-800 shadow-lg p-2 hover:bg-slate-800 hover:text-white hover:shadow-xl cursor-pointer transition-all" >
+            Create Study
+        </button >
+    </section >
+    <hr class="container mx-auto mt-5 mb-1 h-1 bg-slate-800/5" />
+    {% comment %} MAIN SECTION {% endcomment %}
+    <section class="container relative flex flex-col h-screen mx-auto py-2" >
+        <div class="flex flex-row h-1/4" >
+            {% comment %} DATASET SELECTION {% endcomment %}
+            <div class="flex flex-col bg-slate-900/5 shadow-lg rounded-lg w-3/4 ring-4 m-2 ring-slate-900/5" >
+                <div class="text-sm flex flex-row justify-between" >
+                    <p class="text-sm text-slate-800 font-bold py-2 px-4" >Select a dataset:</p >
+                    <form >
+                        {% csrf_token %}
+                        <div class="flex space-x-5 mr-10 py-2 items-center" >
+                            <div >
+                                <input checked type="radio" name="datasetradio" id="personaldataset" value="personal"
+                                       class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                                <label for="personaldataset" class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >Upload
+                                    Data</label >
+                            </div >
+                            <div >
+                                <input type="radio" name="datasetradio" id="epidbdataset" value='epidb'
+                                       class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                                <label for="epidbdataset" class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >EPIDB</label >
+                            </div >
+                        </div >
+                    </form >
+                </div >
+                <div id="patientsdiv" class="overflow-auto px-4 py-2" >
+                    <form action="" class="hidden w-full" name="electrodesInvasive" >
+                        {% csrf_token %}
+                        <div class="flex space-x-5 mr-5 pb-1 items-center w-1/2" >
+                            <input checked type="radio" name="invasiveornot" id="invasive" value="invasive"
+                                   class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                            <label for="invasive"
+                                   class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >Invasive
+                                Electrodes</label >
+                            <input type="radio" name="invasiveornot" id="noninvasive" value="noninvasive"
+                                   class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" >
+                            <label for="noninvasive"
+                                   class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >Non-Invasive
+                                Electrodes</label >
+                        </div >
+                    </form >
+                    <form id="patients" >
+                        {% csrf_token %}
+                        {% if patients|length != 0%}
+                            {% for p in patients %}
+                                {% if p == patid %}
+                                    <div class="flex items-center pl-4 border border-slate-900/5 mb-1 rounded-lg" >
+                                        <input checked
+                                            id="{{ p }}radio"
+                                            type="radio"
+                                            value="{{ p }}"
+                                            name="patientradio"
+                                            class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                                        <label for="{{ p }}radio"
+                                            class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >Patient {{ p }}</label >
+                                    </div >
+                                {% else %}
+                                    <div class="flex items-center pl-4 border border-slate-900/5 mb-1 rounded-lg" >
+                                        <input id="{{ p }}radio"
+                                            type="radio"
+                                            value="{{ p }}"
+                                            name="patientradio"
+                                            class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                                        <label for="{{ p }}radio"
+                                            class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >Patient {{ p }}</label >
+                                    </div >
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </form >
+                </div >
+            </div >
+            {% comment %} PREVIOUS STUDIES  {% endcomment %}
+            <div class="flex flex-col w-1/4 rounded-lg m-2 py-2 px-4 border-b-2" >
+                <p class="text-sm text-slate-800 font-bold mb-2" >Previous Studies:</p >
+                {% if extracts %}
+                    <div class="h-1/8 overflow-auto -mx-4 px-4" >
+                        <table id="studiesTable" class="w-full text-xs text-left text-slate-500" >
+                            <tbody >
+                            {% for s in extracts %}
+                                <tr class="border-b" >
+                                    <th class="px-4 py-1.5 font-bold text-slate-900" >
+                                        {{ s.study.name }}
+                                    </th >
+                                    <td class="px-1" >
+                                        by {{ s.study.user.username }}
+                                    </td >
+                                    <td class="px-1" >
+                                        <a target="_blank"
+                                           rel="noopener noreferrer"
+                                           href="{% url 'extractionStudy' s.study.idstudy %}" >
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                 fill="none"
+                                                 viewBox="0 0 24 24"
+                                                 stroke-width="1.5"
+                                                 class="ml-2 w-4 h-4 stroke-blue-600 hover:stroke-slate-800 transition-all" >
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                                            </svg >
+                                        </a >
+                                    </td >
+                                </tr >
+                            {% endfor %}
+                            </tbody >
+                        </table >
+                    </div >
+                {% else %}
+                    <div class="mx-auto my-auto text-base text-slate-500" >Nothing to Show</div >
+                {% endif %}
+            </div >
+        </div >
+        <div class="relative flex flex-row h-3/4" >
+            {% comment %} EXTRACTION OPTIONS {% endcomment %}
+            <div class="relative flex flex-col bg-slate-900/5 max-h-full space-y-2 w-3/4 shadow-lg rounded-lg ring-4 m-2 py-2 px-4 ring-slate-900/5 overflow-auto" >
+                <p class="text-sm text-slate-800 font-bold mb-2" >Feature Extraction Options</p >
+                {% comment %} CHANNEL SELECTION {% endcomment %}
+                <div class="flex flex-row rounded-lg w-full ring-2 ring-slate-900/5 p-2" >
+                    <form id="channelsform" class="w-full" >
+                        <div class="flex flex-row" >
+                            {% csrf_token %}
+                            <p class="text-xs font-bold text-slate-700" >Channels:</p >
+                            {% if patients|length != 0 %}
+                                <ul id="channelsButtons"
+                                    class="flex flex-row ml-auto w-11/12 py-1 space-x-2 rounded-lg overflow-auto" >
+                                    {% for c in channels|get_item:patid %}
+                                        <li >
+                                            <input type="checkbox"
+                                                name="channelsselect"
+                                                id="{{ c }}"
+                                                value="{{ c }}"
+                                                class="hidden peer" />
+                                            <label for="{{ c }}"
+                                                class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                                <div class="block" >
+                                                    <div class="w-full text-xs font-bold" >{{ c }}</div >
+                                                </div >
+                                            </label >
+                                        </li >
+                                    {% endfor %}
+                                </ul >
+                            {% endif %}
+                        </div >
+                    </form >
+                </div >
+                <div class="flex flex-row w-full space-x-2" >
+                    <div class="flex flex-col w-1/5 space-y-2" >
+                        {% comment %} FILTER SELECTION {% endcomment %}
+                        <div class="flex flex-col text-xs w-full h-1/2 justify-start rounded-lg ring-2 ring-slate-900/5 p-2" >
+                            <div class="flex flex-row text-slate-700 justify-between" >
+                                <p class="font-bold mb-2" >Filtering:</p >
+                                <div id="sectionHelpFiltering" class="w-fit h-fit" >
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         fill="none"
+                                         viewBox="0 0 24 24"
+                                         stroke-width="2"
+                                         stroke="currentColor"
+                                         class="w-4 h-4 hover:cursor-help" >
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                                    </svg >
+                                </div >
+                            </div >
+                            <form type="POST" id="filterform" >
+                                {% csrf_token %}
+                                <div class="flex flex-row items-center" >
+                                    <input class="appearance-none rounded-full h-4 w-4 border border-slate-900/5 bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+                                           type="radio"
+                                           name="filterradio"
+                                           id="none"
+                                           value="none"
+                                           checked />
+                                    <label class="align-middle text-slate-800 font-bold" for="none" >No Filter</label >
+                                </div >
+                                <div class="flex flex-row text-xs text-slate-900 font-normal text-center" >
+                                    <div class="w-1/4 ml-auto mr-2" >cut off</div >
+                                    <div class="w-1/5" >
+                                        order
+                                    </div >
+                                </div >
+                                <div class="flex flex-row items-center mb-2" >
+                                    <input class="appearance-none rounded-full h-4 w-4 border border-slate-900/5 bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+                                           type="radio"
+                                           name="filterradio"
+                                           id="lowpass"
+                                           value="lowpass" />
+                                    <label class="align-middle text-slate-800 font-bold" for="lowpass" >
+                                        Low-pass
+                                    </label >
+                                    <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                           type="number"
+                                           lang="en"
+                                           min="0.1"
+                                           value="20"
+                                           id="lowpassfreq" />
+                                    <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/5 px-1"
+                                           type="number"
+                                           lang="en"
+                                           min="1"
+                                           value="5"
+                                           id="lowpassorder" />
+                                </div >
+                                <div class="flex flex-row items-center mb-2" >
+                                    <input class="appearance-none rounded-full h-4 w-4 border border-slate-900/5 bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+                                           type="radio"
+                                           name="filterradio"
+                                           id="highpass"
+                                           value="highpass" />
+                                    <label class="align-middle text-slate-800 font-bold" for="highpass" >
+                                        High-pass
+                                    </label >
+                                    <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                           type="number"
+                                           lang="en"
+                                           min="0.1"
+                                           value="0.5"
+                                           id="highpassfreq" />
+                                    <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/5 px-1"
+                                           type="number"
+                                           lang="en"
+                                           min="1"
+                                           value="2"
+                                           id="highpassorder" />
+                                </div >
+                                <div class="flex flex-row items-center" >
+                                    <input class="appearance-none rounded-full h-4 w-4 border border-slate-900/5 bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+                                           type="radio"
+                                           name="filterradio"
+                                           id="notch"
+                                           value="notch" />
+                                    <label class="align-middle text-slate-800 font-bold" for="notch" >
+                                        Notch
+                                    </label >
+                                    <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                           type="number"
+                                           lang="en"
+                                           min="0.1"
+                                           value="50"
+                                           id="notchfreq" />
+                                    <input class="invisible border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 h-6 w-1/5 px-1"
+                                           type="number"
+                                           lang="en"
+                                           min="1"
+                                           value="0.5"
+                                           id="notchorder" />
+                                </div >
+                            </form >
+                        </div >
+                        {% comment %} WINDOW (SIZE / STEP) SELECTION {% endcomment %}
+                        <div class="flex flex-col text-xs w-full h-1/2 justify-start rounded-lg ring-2 ring-slate-900/5 p-2" >
+                            <div class="flex flex-row text-slate-700 justify-between" >
+                                <p class="font-bold mb-2" >
+                                    Windowing:
+                                </p >
+                                <div id="sectionHelpWindowing" class="w-fit h-fit" >
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         fill="none"
+                                         viewBox="0 0 24 24"
+                                         stroke-width="2"
+                                         stroke="currentColor"
+                                         class="w-4 h-4 hover:cursor-help" >
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                                    </svg >
+                                </div >
+                            </div >
+                            <form >
+                                {% csrf_token %}
+                                <div class="flex flex-row items-center mb-2" >
+                                    <label class="align-middle text-slate-800 font-bold" for="windowsize" >
+                                        Size (seconds)
+                                    </label >
+                                    <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                           type="number"
+                                           lang="en"
+                                           min="1"
+                                           value="5"
+                                           id="windowsize" />
+                                </div >
+                                <div class="flex flex-row items-center" >
+                                    <label class="align-middle text-slate-800 font-bold" for="windowstep" >
+                                        Step (seconds)
+                                    </label >
+                                    <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                           type="number"
+                                           lang="en"
+                                           min="1"
+                                           value="5"
+                                           id="windowstep" />
+                                </div >
+                            </form >
+                        </div >
+                    </div >
+                    {% comment %} FEATURES SELECTION {% endcomment %}
+                    <div class="relative flex flex-row h-full w-4/5 rounded-lg ring-2 ring-slate-900/5 justify-center space-x-10 p-2 text-xs" >
+                        <form class="w-1/3 h-full" >
+                            <div class="flex flex-col w-full h-full border-r-2 py-2" >
+                                {% csrf_token %}
+                                <p class="font-bold text-slate-700 mb-3" >
+                                    Univariate Features:
+                                </p >
+                                <div class="flex flex-row mb-2" >
+                                    <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="ARModCoeff"
+                                           id="ARModCoeff" />
+                                    <label id="checkFeatARModCoeff"
+                                           class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="ARModCoeff" >
+                                        ARModCoeff
+                                    </label >
+                                    <svg id="optionsARModCoeff"
+                                         xmlns="http://www.w3.org/2000/svg"
+                                         fill="none"
+                                         viewBox="0 0 24 24"
+                                         stroke-width="1.5"
+                                         stroke="currentColor"
+                                         class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                    </svg >
+                                </div >
+                                <div class="flex flex-row mb-2" >
+                                    <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="DecorrTime"
+                                           id="DecorrTime" />
+                                    <label id="checkFeatDecorrTime"
+                                           class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="DecorrTime" >
+                                        DecorrTime
+                                    </label >
+                                </div >
+                                <div class="mb-2" >
+                                    <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="Energy"
+                                           id="Energy" />
+                                    <label id="checkFeatEnergy"
+                                           class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="Energy" >
+                                        Energy
+                                    </label >
+                                </div >
+                                <div class="mb-2" >
+                                    <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="Entropy"
+                                           id="Entropy" />
+                                    <label id="checkFeatEntropy"
+                                           class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="Entropy" >
+                                        Entropy
+                                    </label >
+                                </div >
+                                <div class="flex flex-row  mb-2" >
+                                    <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="Hjorth"
+                                           id="Hjorth" />
+                                    <label id="checkFeatHjorth"
+                                           class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="Hjorth" >
+                                        Hjorth
+                                    </label >
+                                    <svg id="optionsHjorth"
+                                         xmlns="http://www.w3.org/2000/svg"
+                                         fill="none"
+                                         viewBox="0 0 24 24"
+                                         stroke-width="1.5"
+                                         stroke="currentColor"
+                                         class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                    </svg >
+                                </div >
+                                <div class="mb-2" >
+                                    <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="NonLinear"
+                                           id="NonLinear" />
+                                    <label id="checkFeatNonLinear"
+                                           class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="NonLinear" >
+                                        NonLinear
+                                    </label >
+                                </div >
+                                <div class="flex flex-row mb-2" >
+                                    <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="RelPow"
+                                           id="RelPow" />
+                                    <label id="checkFeatRelPow"
+                                           class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="RelPow" >
+                                        RelPow
+                                    </label >
+                                    <svg id="optionsRelPow"
+                                         xmlns="http://www.w3.org/2000/svg"
+                                         fill="none"
+                                         viewBox="0 0 24 24"
+                                         stroke-width="1.5"
+                                         stroke="currentColor"
+                                         class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                    </svg >
+                                </div >
+                                <div class="flex flex-row mb-2" >
+                                    <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="SpectreEdge"
+                                           id="SpectreEdge" />
+                                    <label id="checkFeatSpectreEdge"
+                                           class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="SpectreEdge" >
+                                        SpectreEdge
+                                    </label >
+                                    <svg id="optionsSpectreEdge"
+                                         xmlns="http://www.w3.org/2000/svg"
+                                         fill="none"
+                                         viewBox="0 0 24 24"
+                                         stroke-width="1.5"
+                                         stroke="currentColor"
+                                         class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                    </svg >
+                                </div >
+                                <div class="flex flex-row mb-2" >
+                                    <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="Statistic"
+                                           id="Statistic" />
+                                    <label id="checkFeatStatistic"
+                                           class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="Statistic" >
+                                        Statistic
+                                    </label >
+                                </div >
+                                <div class="flex flex-row" >
+                                    <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="WaveletCoefficient"
+                                           id="WaveletCoefficient" />
+                                    <label id="checkFeatWaveletCoefficient"
+                                           class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="WaveletCoefficient" >
+                                        WaveletCoefficient
+                                    </label >
+                                    <svg id="optionsWaveletCoefficient"
+                                         xmlns="http://www.w3.org/2000/svg"
+                                         fill="none"
+                                         viewBox="0 0 24 24"
+                                         stroke-width="1.5"
+                                         stroke="currentColor"
+                                         class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                    </svg >
+                                </div >
+                                {% if unifeat and unifeat|length != 0 %}
+                                    <p class="font-bold text-slate-500 mb-3 mt-3 ml-4" >External Features</p >
+                                    {% for feat in unifeat %}
+                                        <div class="flex flex-row mb-2" >
+                                            <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                                   type="checkbox"
+                                                   name="featselect"
+                                                   value="{{ feat.name }}"
+                                                   id="{{ feat.name }}" />
+                                            <label id="checkFeat{{ feat.name }}"
+                                                   class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                                   for="{{ feat.name }}" >
+                                                {{ feat.name }}
+                                            </label >
+                                        </div >
+                                    {% endfor %}
+                                {% endif %}
+                            </div >
+                        </form >
+                        <form class="w-1/3 h-full" >
+                            <div class="flex flex-col w-full h-full border-r-2 py-2" >
+                                {% csrf_token %}
+                                <p class="font-bold text-slate-700 mb-3" >
+                                    Multivariate Features:
+                                </p >
+                                <div class="flex flex-row mb-2" >
+                                    <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="Coherence"
+                                           id="Coherence" />
+                                    <label id="checkFeatCoherence"
+                                           class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="Coherence" >
+                                        Coherence
+                                    </label >
+                                    <svg id="optionsCoherence"
+                                         xmlns="http://www.w3.org/2000/svg"
+                                         fill="none"
+                                         viewBox="0 0 24 24"
+                                         stroke-width="1.5"
+                                         stroke="currentColor"
+                                         class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                    </svg >
+                                </div >
+                                <div class="mb-2" >
+                                    <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="Correlation"
+                                           id="Correlation" />
+                                    <label id="checkFeatCorrelation"
+                                           class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="Correlation" >
+                                        Correlation
+                                    </label >
+                                </div >
+                                <div class="flex flex-row mb-2" >
+                                    <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="DirectedTransferFcn"
+                                           id="DirectedTransferFcn" />
+                                    <label id="checkFeatDirectedTransferFcn"
+                                           class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="DirectedTransferFcn" >
+                                        DirectedTransferFcn
+                                    </label >
+                                    <svg id="optionsDirectedTransferFcn"
+                                         xmlns="http://www.w3.org/2000/svg"
+                                         fill="none"
+                                         viewBox="0 0 24 24"
+                                         stroke-width="1.5"
+                                         stroke="currentColor"
+                                         class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                    </svg >
+                                </div >
+                                <div class="mb-2" >
+                                    <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="MeanPhaseCoherence"
+                                           id="MeanPhaseCoherence" />
+                                    <label id="checkFeatMeanPhaseCoherence"
+                                           class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="MeanPhaseCoherence" >
+                                        MeanPhaseCoherence
+                                    </label >
+                                </div >
+                                <div class="flex flex-row mb-2" >
+                                    <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="MutualInformation"
+                                           id="MutualInformation" />
+                                    <label id="checkFeatMutualInformation"
+                                           class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="MutualInformation" >
+                                        MutualInformation
+                                    </label >
+                                    <svg id="optionsMutualInformation"
+                                         xmlns="http://www.w3.org/2000/svg"
+                                         fill="none"
+                                         viewBox="0 0 24 24"
+                                         stroke-width="1.5"
+                                         stroke="currentColor"
+                                         class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                    </svg >
+                                </div >
+                                <div class="flex flex-row mb-2" >
+                                    <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="PartialDirectedCoherence"
+                                           id="PartialDirectedCoherence" />
+                                    <label id="checkFeatPartialDirectedCoherence"
+                                           class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="PartialDirectedCoherence" >
+                                        PartialDirectedCoherence
+                                    </label >
+                                    <svg id="optionsPartialDirectedCoherence"
+                                         xmlns="http://www.w3.org/2000/svg"
+                                         fill="none"
+                                         viewBox="0 0 24 24"
+                                         stroke-width="1.5"
+                                         stroke="currentColor"
+                                         class="w-5 h-5 ml-auto mr-4 text-slate-700 hover:text-blue-600 hover:cursor-pointer transition-all" >
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                                    </svg >
+                                </div >
+                                {% if multifeat and multifeat|length != 0 %}
+                                    <p class="font-bold text-slate-500 mb-3 mt-3 ml-4" >External Features</p >
+                                    {% for feat in multifeat %}
+                                        <div class="flex flex-row mb-2" >
+                                            <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                                   type="checkbox"
+                                                   name="featselect"
+                                                   value="{{ feat.name }}"
+                                                   id="{{ feat.name }}" />
+                                            <label id="checkFeat{{ feat.name }}"
+                                                   class="text-sm align-middle text-slate-900 hover:cursor-help"
+                                                   for="{{ feat.name }}" >
+                                                {{ feat.name }}
+                                            </label >
+                                        </div >
+                                    {% endfor %}
+                                {% endif %}
+                            </div >
+                        </form >
+                        <form id="ecgfeat" class="w-1/3 h-full" >
+                            <div class="flex flex-col w-full h-full border-r-2 py-2" >
+                                {% csrf_token %}
+                                <p class="font-bold text-slate-700 mb-3" >
+                                    ECG Features:
+                                </p >
+                                <div class="mb-2" >
+                                    <input disabled
+                                           class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="R-RStatistics"
+                                           id="R-RStatistics" />
+                                    <label id="checkFeatR-RStatistics"
+                                           class="opacity-50 text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="R-RStatistics" >
+                                        R-RStatistics
+                                    </label >
+                                </div >
+                                <div class="mb-2" >
+                                    <input disabled
+                                           class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="BPMStatistics"
+                                           id="BPMStatistics" />
+                                    <label id="checkFeatBPMStatistics"
+                                           class="opacity-50 text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="BPMStatistics" >
+                                        BPMStatistics
+                                    </label >
+                                </div >
+                                <div class="mb-2" >
+                                    <input disabled
+                                           class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="SpectralAnalysis"
+                                           id="SpectralAnalysis" />
+                                    <label id="checkFeatSpectralAnalysis"
+                                           class="opacity-50 text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="SpectralAnalysis" >
+                                        SpectralAnalysis
+                                    </label >
+                                </div >
+                                <div class="mb-2" >
+                                    <input disabled
+                                           class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="ApproximateEntropy"
+                                           id="ApproximateEntropy" />
+                                    <label id="checkFeatApproximateEntropy"
+                                           class="opacity-50 text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="ApproximateEntropy" >
+                                        ApproximateEntropy
+                                    </label >
+                                </div >
+                                <div class="mb-2" >
+                                    <input disabled
+                                           class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                           type="checkbox"
+                                           name="featselect"
+                                           value="SampleEntropy"
+                                           id="SampleEntropy" />
+                                    <label id="checkFeatSampleEntropy"
+                                           class="opacity-50 text-sm align-middle text-slate-900 hover:cursor-help"
+                                           for="SampleEntropy" >
+                                        SampleEntropy
+                                    </label >
+                                </div >
+                                {% if ecgfeat and ecgfeat|length != 0 %}
+                                    <p class="font-bold text-slate-500 mb-3 mt-3 ml-4" >External Features</p >
+                                    {% for feat in ecgfeat %}
+                                        <div class="flex flex-row mb-2" >
+                                            <input class="h-4 w-4 border border-slate-900/5 rounded focus:ring-blue-600 focus:ring-2 transition duration-200 mr-2 hover:cursor-pointer"
+                                                   type="checkbox"
+                                                   name="featselect"
+                                                   value="{{ feat.name }}"
+                                                   id="{{ feat.name }}" />
+                                            <label id="checkFeat{{ feat.name }}"
+                                                   class="opacity-50 text-sm align-middle text-slate-900 hover:cursor-help "
+                                                   for="{{ feat.name }}" >
+                                                {{ feat.name }}
+                                            </label >
+                                        </div >
+                                    {% endfor %}
+                                {% endif %}
+                            </div >
+                        </form >
+                        {% comment %} FEATURES OPTIONS {% endcomment %}
+                        <!-- Univariate Features Options -->
+                        <div id="paneloptionsARModCoeff"
+                             class="hidden absolute h-full w-full top-0 right-0 p-1 bg-white rounded-lg ring-4 ring-slate-900/5 text-xs" >
+                            <div class="relative flex flex-col h-full" >
+                                <div class="flex flex-col min-h-[50%] min-w-[50%] mx-auto my-auto" >
+                                    <div class="flex flex-row text-sm text-slate-700 font-bold justify-evenly p-4" >
+                                        <p >
+                                            AR Model Coefficients
+                                        </p >
+                                        <div id="sectionHelpARModCoeff" class="w-fit h-fit" >
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                 fill="none"
+                                                 viewBox="0 0 24 24"
+                                                 stroke-width="2"
+                                                 stroke="currentColor"
+                                                 class="w-4 h-4 text-slate-900 hover:cursor-help" >
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                                            </svg >
+                                        </div >
+                                    </div >
+                                    <form id="formARModCoeff" class="rounded-lg border p-4" >
+                                        {% csrf_token %}
+                                        <div class="flex flex-row items-center my-1" >
+                                            <label class="align-middle text-slate-800 font-bold" for="ARModCoeffOrder" >
+                                                AR Order
+                                            </label >
+                                            <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                                   type="number"
+                                                   lang="en"
+                                                   min="1"
+                                                   value="5"
+                                                   id="ARModCoeffOrder" />
+                                        </div >
+                                        <div class="flex flex-row items-center my-1" >
+                                            <label class="align-middle text-slate-800 font-bold"
+                                                   for="ARModCoeffMethod" >
+                                                AR Method
+                                            </label >
+                                            <select id="ARModCoeffMethod"
+                                                    class="text-xs rounded-lg border border-slate-900/5 py-0 block h-6 w-1/4 ml-auto mr-2 px-1 focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                                <option value="burg" >
+                                                    burg
+                                                </option >
+                                                <option value="cov" >
+                                                    cov
+                                                </option >
+                                                <option value="mcov" >
+                                                    mcov
+                                                </option >
+                                                <option value="yule" >
+                                                    yule
+                                                </option >
+                                                <option value="lpc" >
+                                                    lpc
+                                                </option >
+                                            </select >
+                                        </div >
+                                    </form >
+                                    <div class="flex flex-row space-x-4 py-4 ml-auto mt-auto" >
+                                        <button id="closeARModCoeff"
+                                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-xs items-center hover:bg-slate-800 hover:text-white transition-all" >
+                                            Cancel
+                                        </button >
+                                        <button id="confirmARModCoeff"
+                                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-xs items-center hover:bg-slate-800 hover:text-white transition-all" >
+                                            Confirm
+                                        </button >
+                                    </div >
+                                </div >
+                            </div >
+                        </div >
+                        <div id="paneloptionsHjorth"
+                             class="hidden absolute h-full w-full top-0 right-0 p-1 bg-white rounded-lg ring-4 ring-slate-900/5 text-xs" >
+                            <div class="relative flex flex-col h-full" >
+                                <div class="flex flex-col min-h-[50%] min-w-[50%] mx-auto my-auto" >
+                                    <div class="flex flex-row text-sm text-slate-700 font-bold justify-evenly p-4" >
+                                        <p >
+                                            Hjorth
+                                        </p >
+                                        <div id="sectionHelpHjorth" class="w-fit h-fit" >
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                 fill="none"
+                                                 viewBox="0 0 24 24"
+                                                 stroke-width="2"
+                                                 stroke="currentColor"
+                                                 class="w-4 h-4 text-slate-900 hover:cursor-help" >
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                                            </svg >
+                                        </div >
+                                    </div >
+                                    <form id="formHjorth" class="rounded-lg border p-4" >
+                                        <div class="flex flex-row items-center my-1" >
+                                            <label class="align-middle text-slate-800 font-bold" for="HjorthARMethod" >
+                                                AR Method
+                                            </label >
+                                            <select id="HjorthARMethod"
+                                                    class="text-xs rounded-lg border border-slate-900/5 py-0 block h-6 w-1/4 ml-auto mr-2 px-1 focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                                <option value="0" >
+                                                    No
+                                                </option >
+                                                <option value="1" >
+                                                    Yes
+                                                </option >
+                                            </select >
+                                        </div >
+                                    </form >
+                                    <div class="flex flex-row space-x-4 py-4 ml-auto mt-auto" >
+                                        <button id="closeHjorth"
+                                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-xs items-center hover:bg-slate-800 hover:text-white transition-all" >
+                                            Cancel
+                                        </button >
+                                        <button id="confirmHjorth"
+                                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-xs items-center hover:bg-slate-800 hover:text-white transition-all" >
+                                            Confirm
+                                        </button >
+                                    </div >
+                                </div >
+                            </div >
+                        </div >
+                        <div id="paneloptionsRelPow"
+                             class="hidden absolute h-full w-full top-0 right-0 p-1 bg-white rounded-lg ring-4 ring-slate-900/5 text-xs" >
+                            <div class="relative flex flex-col h-full" >
+                                <div class="flex flex-col min-h-[50%] min-w-[50%] mx-auto my-auto" >
+                                    <div class="flex flex-row text-sm text-slate-700 font-bold justify-evenly p-4" >
+                                        <p >
+                                            Relative Power
+                                        </p >
+                                        <div id="sectionHelpRelPow" class="w-fit h-fit" >
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                 fill="none"
+                                                 viewBox="0 0 24 24"
+                                                 stroke-width="2"
+                                                 stroke="currentColor"
+                                                 class="w-4 h-4 text-slate-900 hover:cursor-help" >
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                                            </svg >
+                                        </div >
+                                    </div >
+                                    <form id="formRelPow" class="rounded-lg border p-4" >
+                                        <div class="flex flex-row items-center my-1" >
+                                            <label class="align-middle text-slate-800 font-bold" for="RelPowARMethod" >
+                                                AR Method
+                                            </label >
+                                            <select id="RelPowARMethod"
+                                                    class="text-xs rounded-lg border border-slate-900/5 py-0 block h-6 w-1/4 ml-auto mr-2 px-1 focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                                <option value="0" >
+                                                    No
+                                                </option >
+                                                <option value="1" >
+                                                    Yes
+                                                </option >
+                                            </select >
+                                        </div >
+                                    </form >
+                                    <div class="flex flex-row space-x-4 py-4 ml-auto mt-auto" >
+                                        <button id="closeRelPow"
+                                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-xs items-center hover:bg-slate-800 hover:text-white transition-all" >
+                                            Cancel
+                                        </button >
+                                        <button id="confirmRelPow"
+                                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-xs items-center hover:bg-slate-800 hover:text-white transition-all" >
+                                            Confirm
+                                        </button >
+                                    </div >
+                                </div >
+                            </div >
+                        </div >
+                        <div id="paneloptionsSpectreEdge"
+                             class="hidden absolute h-full w-full top-0 right-0 p-1 bg-white rounded-lg ring-4 ring-slate-900/5 text-xs" >
+                            <div class="relative flex flex-col h-full" >
+                                <div class="flex flex-col min-h-[50%] min-w-[50%] mx-auto my-auto" >
+                                    <div class="flex flex-row text-sm text-slate-700 font-bold justify-evenly p-4" >
+                                        <p >
+                                            Spectral Edge Frequency Analysis
+                                        </p >
+                                        <div id="sectionHelpSpectreEdge" class="w-fit h-fit" >
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                 fill="none"
+                                                 viewBox="0 0 24 24"
+                                                 stroke-width="2"
+                                                 stroke="currentColor"
+                                                 class="w-4 h-4 text-slate-900 hover:cursor-help" >
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                                            </svg >
+                                        </div >
+                                    </div >
+                                    <form id="formSpectreEdge" class="rounded-lg border p-4" >
+                                        <div class="flex flex-row items-center my-1" >
+                                            <label class="align-middle text-slate-800 font-bold"
+                                                   for="SpectreEdgeFreqRef" >
+                                                Reference Frequency
+                                            </label >
+                                            <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                                   type="number"
+                                                   lang="en"
+                                                   min="0"
+                                                   value="0"
+                                                   id="SpectreEdgeFreqRef" />
+                                        </div >
+                                        <div class="flex flex-row items-center my-1" >
+                                            <label class="align-middle text-slate-800 font-bold"
+                                                   for="SpectreEdgePercentage" >
+                                                Percentage
+                                            </label >
+                                            <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                                   type="number"
+                                                   lang="en"
+                                                   min="1"
+                                                   max="100"
+                                                   value="50"
+                                                   id="SpectreEdgePercentage" />
+                                        </div >
+                                        <div class="flex flex-row items-center my-1" >
+                                            <label class="align-middle text-slate-800 font-bold"
+                                                   for="SpectreEdgeMinFreq" >
+                                                Minimum Frequency
+                                            </label >
+                                            <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                                   type="number"
+                                                   lang="en"
+                                                   min="0"
+                                                   value="0"
+                                                   id="SpectreEdgeMinFreq" />
+                                        </div >
+                                        <div class="flex flex-row items-center my-1" >
+                                            <label class="align-middle text-slate-800 font-bold"
+                                                   for="ARModCoeffMethod" >
+                                                AR Method
+                                            </label >
+                                            <select id="SpectreEdgeARMethod"
+                                                    class="text-xs rounded-lg border border-slate-900/5 py-0 block h-6 w-1/4 ml-auto mr-2 px-1 focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                                <option value="0" >
+                                                    No
+                                                </option >
+                                                <option value="1" >
+                                                    Yes
+                                                </option >
+                                            </select >
+                                        </div >
+                                    </form >
+                                    <div class="flex flex-row space-x-4 py-4 ml-auto mt-auto" >
+                                        <button id="closeSpectreEdge"
+                                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-xs items-center hover:bg-slate-800 hover:text-white transition-all" >
+                                            Cancel
+                                        </button >
+                                        <button id="confirmSpectreEdge"
+                                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-xs items-center hover:bg-slate-800 hover:text-white transition-all" >
+                                            Confirm
+                                        </button >
+                                    </div >
+                                </div >
+                            </div >
+                        </div >
+                        <div id="paneloptionsWaveletCoefficient"
+                             class="hidden absolute h-full w-full top-0 right-0 p-1 bg-white rounded-lg ring-4 ring-slate-900/5 text-xs" >
+                            <div class="relative flex flex-col h-full" >
+                                <div class="flex flex-col min-h-[50%] min-w-[50%] mx-auto my-auto" >
+                                    <div class="flex flex-row text-sm text-slate-700 font-bold justify-evenly p-4" >
+                                        <p >
+                                            Wavelets
+                                        </p >
+                                        <div id="sectionHelpWaveletCoefficient" class="w-fit h-fit" >
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                 fill="none"
+                                                 viewBox="0 0 24 24"
+                                                 stroke-width="2"
+                                                 stroke="currentColor"
+                                                 class="w-4 h-4 text-slate-900 hover:cursor-help" >
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                      d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                                            </svg >
+                                        </div >
+                                    </div >
+                                    <form id="formWaveletCoefficient" class="rounded-lg border p-4" >
+                                        <div class="flex flex-row items-center my-1" >
+                                            <label class="align-middle text-slate-800 font-bold"
+                                                   for="WaveletCoefficientMother" >
+                                                Decomposition Mother Wavelet
+                                            </label >
+                                            <select id="WaveletCoefficientMother"
+                                                    class="text-xs rounded-lg border border-slate-900/5 py-0 block h-6 w-1/4 ml-auto mr-2 px-1 focus:ring-blue-600 focus:border-blue-600 transition-all" >
+                                                <option value="daubechie" >
+                                                    Daubechie
+                                                </option >
+                                            </select >
+                                        </div >
+                                        <div class="flex flex-row items-center my-1" >
+                                            <label class="align-middle text-slate-800 font-bold"
+                                                   for="WaveletCoefficientLevel" >
+                                                Wavelet Decomposition Level
+                                            </label >
+                                            <input class="border border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 w-1/4 ml-auto mr-2 px-1"
+                                                   type="number"
+                                                   lang="en"
+                                                   min="1"
+                                                   value="5"
+                                                   id="WaveletCoefficientLevel" />
+                                        </div >
+                                    </form >
+                                    <div class="flex flex-row space-x-4 py-4 ml-auto mt-auto" >
+                                        <button id="closeWaveletCoefficient"
+                                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-xs items-center hover:bg-slate-800 hover:text-white transition-all" >
+                                            Cancel
+                                        </button >
+                                        <button id="confirmWaveletCoefficient"
+                                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-xs items-center hover:bg-slate-800 hover:text-white transition-all" >
+                                            Confirm
+                                        </button >
+                                    </div >
+                                </div >
+                            </div >
+                        </div >
+                    </div >
+                </div >
+            </div >
+            {% comment %} PATIENT FAST DETAILS AND HELP SECTION {% endcomment %}
+            <div class="relative flex flex-col h-full w-1/4 mr-4" >
+                {% comment %} INFOS {% endcomment %}
+                <div class="flex flex-col h-1/2 w-full rounded-lg m-2 py-2 px-4 border-b-2 overflow-auto" >
+                    <p class="text-sm text-slate-800 font-bold mb-2" id="infos" >
+                        Patient
+                    </p >
+                    <div class="h-[70%] overflow-auto -mx-4 px-4" >
+                        <table class="w-full text-xs text-left text-slate-500" >
+                            <tbody >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1.5 font-bold text-slate-900" >
+                                    ID
+                                </th >
+                                <td id="pid" class="px-4" >
+                                    {{ patid }}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1.5 font-bold text-slate-900" >
+                                    Number of files
+                                </th >
+                                <td id="pfiles" class="px-4" >
+                                    174
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1.5 font-bold text-slate-900" >
+                                    Number of Channels
+                                </th >
+                                <td id="pchannels" class="px-4" >
+                                    {% if patients|length != 0%}
+                                        {{ channels|get_item:patid|length }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1.5 font-bold text-slate-900" >
+                                    Start Time
+                                </th >
+                                <td id="pstart" class="px-4" >
+                                    {% if patients|length != 0%}
+                                        {{ begin|get_item:patid }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1.5 font-bold text-slate-900" >
+                                    End Time
+                                </th >
+                                <td id="pend" class="px-4" >
+                                    {% if patients|length != 0%}
+                                    {{ end|get_item:patid }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1.5 font-bold text-slate-900" >
+                                    Total Duration
+                                </th >
+                                <td id="pduration" class="px-4" >
+                                    {% if patients|length != 0%}
+                                    {{ duration|get_item:patid }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1.5 font-bold text-slate-900" >
+                                    Sample Rate
+                                </th >
+                                <td id="psamprate" class="px-4" >
+                                    {% if patients|length != 0%}
+                                        {{ sampfreq|get_item:patid }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td >
+                            </tr >
+                            <tr >
+                                <th scope="row" class="px-4 py-1.5 font-bold text-slate-900" >
+                                    Number of Samples
+                                </th >
+                                <td id="psamples" class="px-4" >
+                                    {% if patients|length != 0%}
+                                        {{ nsamples|get_item:patid }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td >
+                            </tr >
+                            </tbody >
+                        </table >
+                    </div >
+                    <a href="{% url 'patient' patid %}"
+                       id="deatilsBtn"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="flex flex-row group mt-auto ml-auto mb-1 rounded-lg ring-2 ring-blue-600 hover:bg-slate-800 hover:shadow-md p-1 items-center transition-all" >
+                        <div class="font-bold text-xs items-center group-hover:text-white transition-all" >
+                            more details
+                        </div >
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="1.5"
+                             class="ml-2 w-4 h-4 stroke-blue-600 group-hover:stroke-white transition-all" >
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                        </svg >
+                    </a >
+                </div >
+                {% comment %} GRAPHS {% endcomment %}
+                <div class="flex flex-col h-1/2 w-full rounded-lg m-2 py-2 px-4 border-b-2 overflow-auto" >
+                    <p class="text-sm text-slate-800 font-bold mb-4" >
+                        Raw data
+                    </p >
+                    <div id="nothingpanel"
+                         class="hidden mx-auto my-auto text-base text-slate-500" >
+                        Nothing to Show
+                    </div >
+                    <div class="h-[68%] overflow-auto -mx-4 pr-4" >
+                        {% for c in elecnames %}
+                            <div id="graph{{ forloop.counter0 }}" class="w-full" >
+                            </div >
+                        {% endfor %}
+                    </div >
+                    <a href="{% url 'plotpatient' patid 1280 0 %}"
+                       id="plotBtn"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="flex flex-row group mt-auto ml-auto mb-1 rounded-lg ring-2 ring-blue-600 hover:bg-slate-800 hover:shadow-md p-1 items-center transition-all" >
+                        <div class="font-bold text-xs items-center group-hover:text-white transition-all" >
+                            more details
+                        </div >
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="1.5"
+                             class="ml-2 w-4 h-4 stroke-blue-600 group-hover:stroke-white transition-all" >
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                        </svg >
+                    </a >
+                </div >
+                {% comment %} HELP {% endcomment %}
+                <div id="featHelp"
+                     class="hidden absolute flex-col h-[97%] w-full rounded-lg shadow-lg m-2 py-2 px-4 bg-slate-900/5 backdrop-blur-md ring-4 ring-slate-900/5 overflow-auto transition-opacity" >
+                    <p class="text-xs text-slate-700 font-bold ml-auto mb-2" >
+                        Help
+                    </p >
+                    <p id="featureDetailsLabel"
+                       class="text-sm text-slate-700 font-bold mb-2" >
+                        Feature
+                    </p >
+                    <div class="text-slate-900 overflow-auto -mx-4 px-4" >
+                        <p id="featureDetails" class="text-justify text-xs" >
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc non lectus in sapien auctor
+                            bibendum. Phasellus tortor leo, porttitor at ligula non, volutpat faucibus orci. Sed nisl
+                            enim, convallis malesuada nisl vitae, pellentesque accumsan tortor. Vivamus consectetur dui
+                            gravida, sollicitudin est sit amet, volutpat orci. Fusce placerat ex quis nibh congue, et
+                            dignissim tortor dignissim. Integer eros tortor, accumsan et facilisis sed, fringilla luctus
+                            nibh. Nam fringilla scelerisque tellus, nec malesuada ipsum molestie eget. Nulla sed commodo
+                            turpis. Praesent congue congue aliquet. Proin efficitur, nibh a pellentesque convallis, quam
+                            ex tempus nisi, sed fringilla tortor metus volutpat nibh. Pellentesque ut iaculis ex. Nunc
+                            egestas neque eu feugiat mattis. Proin dignissim metus ac ante pulvinar elementum. Morbi
+                            tempor mauris vel tortor rutrum, sed facilisis sem elementum. Nulla lectus elit, maximus in
+                            porta feugiat, sodales sed lacus.
+                            <img src="{% static 'app/img/windowing.png' %}" class="w-full" />
+                        </p >
+                    </div >
+                </div >
+            </div >
+            <div id="paneloptionsFlag"
+                 class="hidden absolute w-3/4 h-full backdrop-blur-[3px] bg-white/30" >
+                <div class="flex flex-col justify-evenly rounded-lg ring-4 ring-slate-900/5 w-1/2 mx-auto my-28 p-4 font-bold text-center" >
+                    <p >Something went wrong.<br >The file is missing, so there's no chance on creating a study.</p >
+                </div >
+            </div >
+            {% comment %} LOADING SCREEN {% endcomment %}
+            <div id="loading"
+                 class="hidden absolute h-full w-3/4 backdrop-blur-sm bg-white/30 text-center" >
+                <div class="my-40" >
+                    <button disabled
+                            type="button"
+                            class="text-slate-800 text-lg font-bold bg-slate-900/5 rounded-lg px-5 py-2.5 text-center mr-2 inline-flex items-center" >
+                        <svg class="inline w-6 h-6 mr-3 text-slate-800 motion-safe:animate-spin"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             xmlns="http://www.w3.org/2000/svg" >
+                            <path
+                                    opacity="0.2"
+                                    fill-rule="evenodd"
+                                    clip-rule="evenodd"
+                                    d="M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19ZM12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                    fill="currentColor"
+                            />
+                            <path
+                                    d="M2 12C2 6.47715 6.47715 2 12 2V5C8.13401 5 5 8.13401 5 12H2Z"
+                                    fill="currentColor"
+                            />
+                        </svg >
+                        Loading...
+                    </button >
+                </div >
+            </div >
+        </div >
+        {% comment %} OPTIONS SUMMARY {% endcomment %}
+        <div id="paneloptionsSummary"
+             class="hidden absolute w-full h-full backdrop-blur-[1px] bg-white/30" >
+            <div class="flex flex-col rounded-lg ring-4 ring-slate-900/5 bg-white w-1/2 mx-auto my-20 p-4" >
+                <p class="font-bold text-slate-700 mb-2" >
+                    Your options summary
+                </p >
+                <div class="flex flex-wrap space-x-8 m-4 text-slate-900 justify-center" >
+                    <div class="flex flex-col h-fit rounded-lg p-2 ring-2 shadow-sm ring-slate-900/5 text-xs text-center" >
+                        <p class="font-bold text-slate-700 mb-2" >
+                            Patient
+                        </p >
+                        <div id="patientsummary" >
+                        </div >
+                    </div >
+                    <div class="flex flex-col h-fit max-h-72 overflow-y-auto rounded-lg p-2 ring-2 shadow-sm ring-slate-900/5 text-xs text-center" >
+                        <p class="font-bold text-slate-700 mb-2" >
+                            Channels
+                        </p >
+                        <div id="channelssummary" >
+                        </div >
+                    </div >
+                    <div class="flex flex-col h-fit rounded-lg p-2 ring-2 shadow-sm ring-slate-900/5 text-xs text-center" >
+                        <p class="font-bold text-slate-700 mb-2" >
+                            Filtering
+                        </p >
+                        <div id="filtersummary" >
+                        </div >
+                    </div >
+                    <div class="flex flex-col h-fit rounded-lg p-2 ring-2 shadow-sm ring-slate-900/5 text-xs text-center" >
+                        <p class="font-bold text-slate-700 mb-2" >
+                            Windowing
+                        </p >
+                        <div id="windowsummary" >
+                        </div >
+                    </div >
+                    <div class="flex flex-col h-fit max-h-72 overflow-y-auto rounded-lg p-2 ring-2 shadow-sm ring-slate-900/5 text-xs text-center" >
+                        <p class="font-bold text-slate-700 mb-2" >
+                            Features
+                        </p >
+                        <div id="featsummary" >
+                        </div >
+                    </div >
+                </div >
+                <div id="targetTimes"
+                     class="rounded-lg p-2 m-auto my-2 font-bold text-xs text-slate-900 text-center justify-center" >
+                    <p class="font-bold p-2" >Choose Times for Preictal Phase (minutes):</p >
+                    <div class="flex flex-row space-x-8 items-center rounded-lg p-2 ring-slate-900/5 text-center " >
+                        <div >
+                            <label for="SPH" class="font-bold text-slate-700 text-xs" >SPH Time:</label >
+                            <input type="number" name="SPH" id="SPH" value="10" min="0"
+                                   class="text-xs text-slate-700 text-center rounded-lg w-2/5 border-slate-300" >
+                        </div >
+                        <div >
+                            <label for="SOP" class="font-bold text-slate-700 text-xs" >SOP Time:</label >
+                            <input type="number" name="SOP" id="SOP" value="30"
+                                   class="text-xs text-slate-700 text-center rounded-lg w-2/5 border-slate-300" >
+                        </div >
+                    </div >
+                </div >
+                <div id="warnings"
+                     class="max-w-fit max-h-fit rounded-lg p-2 m-auto my-2 font-bold text-xs text-white text-center bg-slate-800" >
+                </div >
+                <div class="flex flex-col w-full border-t pt-4 space-y-4" >
+                    <div class="flex flex-row space-x-2 justify-center" >
+                        <label for="setname" class="text-slate-700 text-sm font-bold my-auto" >Enter a name for your
+                            feature dataset: </label >
+                        <input type="text" id="setname"
+                               class="border border-slate-200 text-slate-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 w-1/2 p-1 text-xs"
+                               placeholder="ex: fp1_wavelets" required >
+                    </div >
+                    <div class="flex flex-row space-x-4 ml-auto justify-end" >
+                        <button id="closeSummary"
+                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-sm items-center hover:bg-slate-800 hover:text-white transition-all" >
+                            Cancel
+                        </button >
+                        <button id="submitSummary" type="submit"
+                                formmethod="post"
+                                id="confirmSummary"
+                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-sm items-center hover:bg-slate-800 hover:text-white transition-all" >
+                            Submit
+                        </button >
+                        <button id="submitSummaryBlocked" type="submit"
+                                formmethod="post"
+                                id="confirmSummary"
+                                class="hidden rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-sm items-center opacity-50 cursor-not-allowed transition-all" >
+                            Submit
+                        </button >
+                    </div >
+                </div >
+            </div >
+        </div >
+    </section >
+{% endblock content %}
+{% block scripts %}
+    <script >
+        function getGraphs(signal, signalTime, elecnames) {
+            for (let index = 0; index < signal.length; index++) {
+                let traceColor = 'rgb(37, 99, 235)';
+                const trace = {
+                    y: signal[index],
+                    x: signalTime,
+                    type: 'scatter',
+                    name: elecnames[index],
+                    line: {
+                        color: traceColor,
+                        width: 1
+                    }
+                };
+                const data = [trace];
+                const layout = {
+                    showlegend: true,
+                    legend: {
+                        size: 10,
+                        font: {
+                            family: 'sans-serif',
+                            size: 10,
+                        },
+                    },
+                    xaxis: {
+                        showticklabels: false,
+                        showgrid: false,
+                    },
+                    yaxis: {
+                        showgrid: false,
+                        showticklabels: false,
+                    },
+                    height: 20,
+                    autosize: true,
+                    //{% comment %} TODO: COMPOR ISTO DO RESPONSIVE (O PROBLEMA ESTA EM FAZER BUILD NUMA HIDDEN DIV)  {% endcomment %}
+                    margin: {
+                        t: 0,
+                        b: 0,
+                        r: 0,
+                        l: 20,
+                    },
+                }
+                Plotly.newPlot('graph' + index, data, layout, {
+                    responsive: true,
+                    displayModeBar: false,
+                    staticPlot: true
+                });
+            }
+        }
+
+        {% comment %} window.addEventListener("load", (event) => {
+            actualSignal = {{signal|safe}};
+            actualTime = {{signaltime|safe}};
+            actualChannels = {{elecnames|safe}};
+            getGraphs(actualSignal, actualTime, actualChannels);
+        }); {% endcomment %}
+
+        const featCheckBoxes = document.querySelectorAll('[id^="checkFeat"],[id^="sectionHelp"]');
+        featCheckBoxes.forEach(function (elem) {
+            elem.addEventListener("mouseover", (event) => {
+                let feat = elem.id.replace("checkFeat", "").replace("sectionHelp", "");
+                document.getElementById('featureDetailsLabel').innerHTML = feat;
+                document.getElementById('featHelp').classList.remove('hidden');
+            });
+            elem.addEventListener("mouseout", (event) => {
+                document.getElementById('featHelp').classList.add('hidden');
+            });
+        });
+
+        const optionsBtns = document.querySelectorAll('[id^="options"],[id^="close"],[id^="confirm"],[id^="submit"]');
+        optionsBtns.forEach(function (elem) {
+            elem.addEventListener("click", (event) => {
+                let btn = elem.id.replace("options", "").replace("close", "").replace("confirm", "").replace("submit", "");
+                document.getElementById('paneloptions' + btn).classList.toggle('hidden');
+                if (elem.id == 'optionsSummary' || elem.id == 'submitSummary') {
+                    document.getElementById('patientsummary').innerHTML = '';
+                    document.getElementById('channelssummary').innerHTML = '';
+                    document.getElementById('filtersummary').innerHTML = '';
+                    document.getElementById('windowsummary').innerHTML = '';
+                    document.getElementById('featsummary').innerHTML = '';
+                    document.getElementById('warnings').innerHTML = '';
+                    let patient = $('input[name="patientradio"]:checked').val();
+                    let channels = $('input[name="channelsselect"]:checked').map((i, el) => el.value).get();
+                    let filter = $('input[name="filterradio"]:checked').val();
+                    let filteroptions = [$('input[id="' + filter + 'freq"]').val(), $('input[id="' + filter + 'order"]').val()];
+                    let window = [$('input[id="windowsize"]').val(), $('input[id="windowstep"]').val()];
+                    let feats = $('input[name="featselect"]:checked').map((i, el) => el.value).get();
+                    let setname = $('input[id="setname"]').val();
+                    let SPH = $('input[id="SPH"]').val();
+                    let SOP = $('input[id="SOP"]').val();
+                    let featsoptions = [];
+                    let sample_freq = $("#psamprate").text().replace(/^\s+|\s+$/g, "");;
+                    for (let i = 0; i < feats.length; i++) {
+                        let keys = $("#paneloptions" + feats[i]).find("select, input").map((i, el) => el.id).get();
+                        let values = $("#paneloptions" + feats[i]).find("select, input").map((i, el) => el.value).get();
+                        let result = {};
+                        keys.forEach((key, i) => result[key] = values[i]);
+                        featsoptions.push(result);
+                    }
+                    if (elem.id == 'submitSummary') {
+                        const url = "{{ request.path }}";
+                        $.ajax({
+                            url: url,
+                            type: "POST",
+                            data: {
+                                'database': $('input[name="datasetradio"]:checked').val(),
+                                'patient': patient,
+                                'sampfreq': sample_freq,
+                                'channels[]': channels,
+                                'filter': filter,
+                                'filteroptions[]': filteroptions,
+                                'windowing[]': window,
+                                'feats[]': feats,
+                                'featsoptions[][]': JSON.stringify(featsoptions),
+                                'SPH': SPH,
+                                'SOP': SOP,
+                                'setname': setname,
+                                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                            },
+                            datatype: 'json',
+                            success: function (data) {
+                                location.replace("{% url 'index' %}")
+                            },
+                        });
+                        return
+                    }
+                    $('#patientsummary').append('<p>' + patient + '</p>');
+                    channels.forEach(function (item) {
+                        $('#channelssummary').append('<p>' + item + '</p>');
+                    });
+                    $('#filtersummary').append('<p>' + filter + '</p>');
+                    $('#windowsummary').append('<p>size - ' + window[0] + ' seconds</p>');
+                    $('#windowsummary').append('<p>step - ' + window[1] + ' seconds</p>');
+                    if (window[1] < window[0]) {
+                        $('#windowsummary').append('<p>overlapping - True</p>');
+                    }
+                    feats.forEach(function (item) {
+                        $('#featsummary').append('<p>' + item + '</p>');
+                    });
+
+                    if (channels.length == 0 || feats.length == 0) {
+                        document.getElementById('submitSummary').classList.add('hidden');
+                        document.getElementById('submitSummaryBlocked').classList.remove('hidden');
+                        if (channels.length == 0 && feats.length == 0) {
+                            $('#warnings').append('<p class="text-red-600">At a minimum, you have to select one channel and one feature.</p>');
+                            $('#channelssummary').append('<p>-</p>');
+                            $('#featsummary').append('<p>-</p>');
+                        } else if (channels.length == 0) {
+                            $('#warnings').append('<p class="text-red-600">No channel has been selected. Please go back and select at least one.</p>');
+                            $('#channelssummary').append('<p>-</p>');
+                        } else if (feats.length == 0) {
+                            $('#warnings').append('<p class="text-red-600">No feature has been selected. Please go back and select at least one.</p>');
+                            $('#featsummary').append('<p>-</p>');
+                        }
+                    } else {
+                        $('#warnings').append('<p class="text-blue-600 my-1">Depending on your choices, the task may or may not take a good amount of time.</p><p class="text-blue-600 my-1">SUBMIT and you will be notified when the task is completed.</p>');
+                        document.getElementById('submitSummary').classList.remove('hidden');
+                        document.getElementById('submitSummaryBlocked').classList.add('hidden');
+                    }
+                    //{% comment %} FEAT OPTIONS FORM RESETING ON CLOSING WINDOW WITHOUT CONFIRM {% endcomment %}
+                } else if ((elem.id).includes('close') && !(elem.id).includes('Summary')) {
+                    document.getElementById('form' + btn).reset();
+                }
+            });
+        });
+
+        $(document).ready(function () {
+            var patients = {{ patients|safe }};
+            if (patients.length == 0) {
+                $('')
+            }
+            // Delegate event binding for dynamically added patientradio inputs
+            $(document).on('change', "input[name='patientradio']", function () {
+                const patient = $("input[name='patientradio']:checked").val();
+                $('#nothingpanel').addClass('hidden');
+                $('#paneloptionsFlag').addClass('hidden');
+
+                $("#optionsSummary").prop("disabled", false);
+                $("#optionsSummary").removeClass("cursor-not-allowed").addClass("cursor-pointer");
+
+                $('#loading').removeClass('hidden');
+
+                $('#channelsButtons').empty();
+                $("#ecgfeat :input").prop("disabled", true);
+                $("#ecgfeat :input").prop("checked", false);
+                $("#ecgfeat label").addClass("opacity-50");
+
+                const dataset = $("input[name='datasetradio']:checked").val();
+                const url = "{{ request.path }}";
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    data: {
+                        'patid': patient,
+                        'dataset': dataset,
+                        'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                    },
+                    datatype: 'json',
+                    success: function (data) {
+                        
+                        if (data.datasource === 'epidb'){
+                            // UPDATE ADMISSION INFORMATION
+                            $('#infos').text('Admission');
+                            $('#pid').text(data.admission);
+                            $('#pfiles').html(data.nfiles);
+                            $('#pchannels').html(data.nchannels);
+                            $('#pstart').html(data.start_time);
+                            $('#pend').html(data.end_time);
+                            $('#pduration').html(data.duration);
+                            $('#psamprate').html(data.sample_rate);
+                            
+                            // UPDATE CHANNELS
+                            for (i = 0; i < data.channels.length; i++) {
+                                var newRowContent = '<li><input type="checkbox" id="' + data.channels[i] + '" name="channelsselect" value="' + data.channels[i] + '" class="hidden peer" /><label for="' + data.channels[i] + '" class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all"><div class="block" ><div class="w-full text-xs font-bold">' + data.channels[i] + '</div></div></label></li>';
+                                $('#channelsButtons').append(newRowContent);
+                            }
+                            
+                        }
+                        
+                        $('#pid').text(data.patient);
+                        $('#pfiles').html(data.nfiles);
+                        $('#pchannels').html(data.nchannels);
+                        $('#pstart').html(data.start_time);
+                        $('#pend').html(data.end_time);
+                        $('#pduration').html(data.duration);
+                        $('#psamprate').html(data.sampfreq);
+                        $('#psamples').html(data.nsamples);
+
+                        // PREVIOUS STUDIES
+                        $('#studiesTable').find('tbody').empty();
+                        if (typeof data.names !== 'undefined') {
+                            for (i = 0; i < data.names.length; i++) {
+                                var newRowContent = '<tr class="border-b"><th class="px-4 py-2 font-bold text-slate-900">' + data.names[i] + '</th><td class="px-1">by ' + data.res[i] + '</td><td class="px-1"><a href="/extractionStudy/' + data.ids[i] + '/" target="_blank" rel="noopener noreferrer"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="ml-2 w-4 h-4 stroke-blue-600 hover:stroke-slate-800 transition-all"><path stroke-linecap="round" stroke-line join="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg></a></td></tr>';
+                                $("#studiesTable tbody").append(newRowContent);
+                            }
+                        } else {
+                            $("#studiesTable tbody").append('Nothing to Show');
+                        }
+
+                        // SIGNAL
+                        if (data.signal) {
+                            getGraphs(data.signal, data.signaltime, data.elecnames);
+                        } else {
+                            document.querySelectorAll('[id^="graph"]').forEach(item => {
+                                item.innerHTML = '';
+                            });
+                            document.getElementById('plotBtn').classList.add('hidden');
+                            document.getElementById('nothingpanel').classList.remove('hidden');
+                            //const btn = document.getElementById("optionsSummary")
+                            //btn.disabled = true;
+                            //btn.classList.replace("cursor-pointer", "cursor-not-allowed");
+                            //document.getElementById("paneloptionsFlag").classList.remove('hidden');
+                        }
+                        document.getElementById('loading').classList.add('hidden');
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+            });
+
+            // Delegate event binding for dynamically added datasetradio inputs
+            $(document).on('change', "input[name='datasetradio']", function () {
+                const dataset = $("input[name='datasetradio']:checked").val();
+                $("form[id='patients']").empty();
+                $('#channelsButtons').empty();
+                $("#ecgfeat :input").prop("disabled", true);
+                $("#ecgfeat :input").prop("checked", false);
+                $("#ecgfeat label").addClass("opacity-50");
+                $.ajax({
+                    url: "{{ request.path }}",
+                    type: "POST",
+                    data: {
+                        'datasource': dataset,
+                        'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                    },
+                    datatype: 'json',
+                    success: function (data) {
+                        if (data.datasource === 'epidb') {
+                            for (i = 0; i < data.admissions.length; i++) {
+                                var newRowContent = `
+                            <div class="flex items-center pl-4 border border-slate-900/5 mb-1 rounded-lg">
+                                <input ${i == 0 ? 'checked' : ''} type="radio" id="${data.admissions[i]}radio" name="patientradio" value="${data.admissions[i]}" class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500">
+                                <label for="${data.admissions[i]}" class="w-full py-2 ml-2 text-xs text-slate-900 font-bold">Admission ${data.admissions[i]}</label>
+                            </div>`;
+                                $('form[id="patients"]').append(newRowContent);
+                            }
+
+                            // UPDATE ADMISSION INFORMATION
+                            $('#infos').text('Admission');
+                            $('#pid').text(data.admission);
+                            $('#pfiles').html(data.nfiles);
+                            $('#pchannels').html(data.nchannels);
+                            $('#pstart').html(data.start_time);
+                            $('#pend').html(data.end_time);
+                            $('#pduration').html(data.duration);
+                            $('#psamprate').html(data.sampfreq);
+
+                            // UPDATE CHANNELS
+                            for (i = 0; i < data.channels.length; i++) {
+                                var newRowContent = '<li><input type="checkbox" id="' + data.channels[i] + '" name="channelsselect" value="' + data.channels[i] + '" class="hidden peer" /><label for="' + data.channels[i] + '" class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all"><div class="block" ><div class="w-full text-xs font-bold">' + data.channels[i] + '</div></div></label></li>';
+                                $('#channelsButtons').append(newRowContent);
+                            }
+
+                        } else if (data.datasource === 'epiweb') {
+                            for (i = 0; i < data.patients.length; i++) {
+                                var newRowContent = `
+                            <div class="flex items-center pl-4 border border-slate-900/5 mb-1 rounded-lg">
+                                <input ${i == 0 ? 'checked' : ''} type="radio" id="${data.patients[i]}radio" name="patientradio" value="${data.patients[i]}" class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500">
+                                <label for="${data.patients[i]}" class="w-full py-2 ml-2 text-xs text-slate-900 font-bold">Patient ${data.patients[i]}</label>
+                            </div>`;
+                                $('form[id="patients"]').append(newRowContent);
+                            }
+
+                            // UPDATE PATIENT INFORMATION
+                            $('#infos').text('Patient');
+                            $('#pid').text(data.patient);
+                            $('#pfiles').html(data.nfiles);
+                            $('#pchannels').html(data.nchannels);
+                            $('#pstart').html(data.start_time);
+                            $('#pend').html(data.end_time);
+                            $('#pduration').html(data.duration);
+                            $('#psamprate').html(data.sampfreq);
+
+                            // UPDATE CHANNELS
+                            for (i = 0; i < data.channels.length; i++) {
+                                var newRowContent = '<li><input type="checkbox" id="' + data.channels[i] + '" name="channelsselect" value="' + data.channels[i] + '" class="hidden peer" /><label for="' + data.channels[i] + '" class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all"><div class="block" ><div class="w-full text-xs font-bold">' + data.channels[i] + '</div></div></label></li>';
+                                $('#channelsButtons').append(newRowContent);
+                            }
+                        }
+
+                        const checkboxes = document.querySelectorAll("input[id^='ECG'], input[id^='EKG']");
+                        checkboxes.forEach(function (checkbox) {
+                            checkbox.addEventListener('change', function () {
+                                if (this.checked) {
+                                    $("#ecgfeat :input").prop("disabled", false);
+                                    $("#ecgfeat label").removeClass("opacity-50");
+                                } else {
+                                    $("#ecgfeat :input").prop("disabled", true);
+                                    $("#ecgfeat :input").prop("checked", false);
+                                    $("#ecgfeat label").addClass("opacity-50");
+                                }
+                            });
+                        });
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.status);
+                        alert(thrownError);
+                    }
+                });
+            });
+
+            // Event delegation for checkboxes with IDs starting with 'ECG' or 'EKG'
+            $(document).on('change', "input[id^='ECG'], input[id^='EKG']", function () {
+                const anyChecked = $("input[id^='ECG']:checked, input[id^='EKG']:checked").length > 0;
+                if (anyChecked) {
+                    $("#ecgfeat :input").prop("disabled", false);
+                    $("#ecgfeat label").removeClass("opacity-50");
+                } else {
+                    $("#ecgfeat :input").prop("disabled", true);
+                    $("#ecgfeat :input").prop("checked", false);
+                    $("#ecgfeat label").addClass("opacity-50");
+                }
+            });
+        });
+
+    </script >
+{% endblock scripts %}

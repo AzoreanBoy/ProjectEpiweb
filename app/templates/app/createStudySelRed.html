@@ -1,0 +1,1256 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block title %} EPIWEB | Selection/Reduction {% endblock title %}
+{% block content %}
+    {% comment %} NAVBAR {% endcomment %}
+    <nav class="relative container mx-auto px-6 py-2 border-b-slate-900/10 border-b-2 border-x-0" >
+        <div class="flex items-center justify-between" >
+            <a href="{% url 'index' %}"
+               class="text-5xl text-slate-800 font-bold font-mono" >EPIWEB</a >
+            <div class="flex flex-row justify-between" >
+                <p class="flex self-center text-slate-900 font-bold" >{{ request.user }} |</p >
+                <div onclick="openNotFunction('notpanel')"
+                     class="self-center px-6 stroke-2 stroke-slate-900 hover:stroke-blue-600 hover:cursor-pointer transition-all" >
+                    <svg id="bell" class="h-6 w-6" fill="none" viewBox="0 0 24 24" >
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                    </svg >
+                </div >
+                {% comment %} button {% endcomment %}
+                <a href="{% url 'logoutUser' %}"
+                   class="flex rounded-xl p-2 w-fit text-slate-900 font-bold ring-4 ring-white hover:bg-slate-800 hover:text-blue-600 hover:ring-blue-600 hover:shadow-sm transition-all" >Logout</a >
+            </div >
+        </div >
+    </nav >
+    <nav class="container w-full mx-auto my-1" >
+        <ol class="flex text-xs font-bold" >
+            <li >
+                <a href="{% url 'index' %}"
+                   class="align-middle text-slate-800 hover:drop-shadow-lg transition-all" >Home</a >
+            </li >
+            <li >
+                <span class="text-sm text-slate-800 mx-2" >&gt;</span >
+            </li >
+            <li class="align-middle font-normal text-slate-500" >New Selection/Reduction Study</li >
+        </ol >
+    </nav >
+    {% comment %} TOP BUTTONS {% endcomment %}
+    <section class="container flex flex-row mx-auto mt-8 text-sm font-bold text-slate-900 justify-between" >
+        <div class="flex flex-row" >
+            <a href="{% url 'createStudy' 0 %}" id="btnCheckedFeatExt"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5 " >
+                <p class="border-b-2 border-slate-900/5w-fit group-hover:border-blue-600 transition-all" >Feature
+                    Extraction</p >
+            </a >
+            <a href="{% url 'trainTestSplit' 0 %}" id="btnNotCheckedPred"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >Train / Test
+                    Split</p >
+            </a >
+            <a href="{% url 'createNormalizationStudy' 0 %}" id="btnNotCheckedPred"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >
+                    Normalization</p >
+            </a >
+            <a id="btnNotCheckedPred"
+               class="mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-blue-600 w-fit" >Feature Selection | Dimensionality Reduction</p >
+            </a >
+            <a href="{% url 'createStudyClassification' 0 %}" id="btnNotCheckedPred"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >
+                    Classification</p >
+            </a >
+            {% comment %}
+            <a href="{% url 'PostProcessingStudy' 0 %}"
+            class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5 " >
+            <p class="border-b-2 border-slate-900/5w-fit group-hover:border-blue-600 transition-all" >Post-Processing</p >
+        </a >
+        {% endcomment %}
+        </div >
+        <button id="optionsSummary"
+                class="rounded-lg w-fit bg-slate-900/5 ring-4 ring-blue-600 text-center text-slate-800 shadow-lg p-2 hover:bg-slate-800 hover:text-white hover:shadow-xl cursor-pointer transition-all" >
+            Create Study
+        </button >
+    </section >
+    <hr class="container mx-auto mt-5 mb-1 h-1 bg-slate-800/5" />
+    {% comment %} MAIN SECTION {% endcomment %}
+    <section class="container relative flex flex-col h-screen mx-auto py-2" >
+        <div class="flex flex-row h-1/4" >
+            {% comment %} DATASET SELECTION {% endcomment %}
+            <div class="flex flex-col bg-slate-900/5 shadow-lg rounded-lg w-3/4 m-2 ring-4 ring-slate-900/5" >
+                <p class="text-sm text-slate-800 font-bold py-2 px-4" >Select a dataset:</p >
+                <div class="flex flex-col px-4 py-2 overflow-auto" >
+                    {% for feat in studies %}
+                        {% if feat.idstudy == studyId %}
+                            <div class="flex items-center pl-4 border border-slate-900/5 mb-1 rounded-lg" >
+                                {% if feat.type == "extraction" %}
+                                    <input checked
+                                           id="{{ feat.idstudy }}extractfeatradio"
+                                           type="radio"
+                                           value="extract{{ feat.idstudy }}"
+                                           name="studiesradio"
+                                           class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                                    <label for="{{ feat.idstudy }}extractfeatradio"
+                                           class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >#{{ feat.idstudy }}<span
+                                            class="mx-1 rounded-lg p-1 bg-sky-500 text-[10px]" > Extraction </span >{{ feat.name }}
+                                    </label >
+                                {% else %}
+                                    <input checked
+                                           id="{{ feat.idstudy }}normfeatradio"
+                                           type="radio"
+                                           value="norm{{ feat.idstudy }}"
+                                           name="studiesradio"
+                                           class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                                    <label for="{{ feat.idstudy }}normfeatradio"
+                                           class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >#{{ feat.idstudy }}<span
+                                            class="mx-1 rounded-lg p-1 bg-rose-500 text-[10px]" > Normalization </span >{{ feat.name }}
+                                    </label >
+                                {% endif %}
+                            </div >
+                        {% else %}
+                            <div class="flex items-center pl-4 border border-slate-900/5 mb-1 rounded-lg" >
+                                {% if feat.type == "extraction" %}
+                                    <input
+                                            id="{{ feat.idstudy }}extractfeatradio"
+                                            type="radio"
+                                            value="extract{{ feat.idstudy }}"
+                                            name="studiesradio"
+                                            class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                                    <label for="{{ feat.idstudy }}extractfeatradio"
+                                           class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >#{{ feat.idstudy }}<span
+                                            class="mx-1 rounded-lg p-1 bg-sky-500 text-[10px]" > Extraction </span >{{ feat.name }}
+                                    </label >
+                                {% else %}
+                                    <input
+                                            id="{{ feat.idstudy }}normfeatradio"
+                                            type="radio"
+                                            value="norm{{ feat.idstudy }}"
+                                            name="studiesradio"
+                                            class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                                    <label for="{{ feat.idstudy }}normfeatradio"
+                                           class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >#{{ feat.idstudy }}<span
+                                            class="mx-1 rounded-lg p-1 bg-rose-500 text-[10px]" > Normalization </span >{{ feat.name }}
+                                    </label >
+                                {% endif %}
+                            </div >
+                        {% endif %}
+                    {% endfor %}
+                </div >
+            </div >
+            {% comment %} PREVIOUS STUDIES  {% endcomment %}
+            <div class="flex flex-col w-1/4 rounded-lg m-2 py-2 px-4 border-b-2" >
+                <p class="text-sm text-slate-800 font-bold mb-2" >Previous Studies:</p >
+                <div class="h-1/8 overflow-auto -mx-4 px-4" >
+                    <table id="studiesTable" class="w-full text-xs text-left text-slate-500" >
+                        <tbody >
+                        {% for s in previous %}
+                            <tr class="border-b" >
+                                <th class="px-4 py-2 font-bold text-slate-900" >
+                                    {{ s.study.name }}
+                                </th >
+                                <td class="px-1" >
+                                    by {{ s.study.user.username }}
+                                </td >
+                                <td class="px-1" >
+                                    <a target="_blank"
+                                       rel="noopener noreferrer" href="{% url 'selredStudy' s.study.idstudy %}" >
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke-width="1.5"
+                                             class="ml-2 w-4 h-4 stroke-blue-600 hover:stroke-slate-800 transition-all" >
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                                        </svg >
+                                    </a >
+                                </td >
+                            </tr >
+                        {% endfor %}
+                        </tbody >
+                    </table >
+                </div >
+            </div >
+        </div >
+        {% comment %} OPTIONS SECTION {% endcomment %}
+        <div class="flex flex-row h-3/4" >
+            {% comment %} OPTIONS {% endcomment %}
+            <div class="relative flex flex-col bg-slate-900/5 max-h-full w-3/4 shadow-lg rounded-lg ring-4 m-2 py-2 px-4 ring-slate-900/5 overflow-auto" >
+                <p class="text-sm text-slate-800 font-bold mb-2" >Feature Selection | Dimensionality Reduction
+                    Options</p >
+                {% comment %} DATA SELECTION {% endcomment %}
+                <div class="flex flex-row my-2 rounded-lg w-full ring-2 ring-slate-900/5 p-2" >
+                    <div class="flex flex-row w-full" >
+                        {% csrf_token %}
+                        <p class="text-xs font-bold text-slate-700 mr-6" >Data:</p >
+                        <ul class="my-auto" >
+                            <li >
+                                <input type="checkbox"
+                                       name="alldataselect"
+                                       id="featbtnalldata"
+                                       value="alldata"
+                                       class="hidden peer" />
+                                <label for="featbtnalldata"
+                                       class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                    <div class="block" >
+                                        <div class="w-full text-xs font-bold" >All</div >
+                                    </div >
+                                </label >
+                            </li >
+                        </ul >
+                        <div class="border-2 mx-4" ></div >
+                        <ul id="datalist" class="flex flex-row w-11/12 py-1 space-x-2 overflow-auto" >
+                            {% for column in columns %}
+                                <li >
+                                    <input type="checkbox"
+                                           name="dataselect"
+                                           id="featbtn{{ column }}"
+                                           value="{{ column }}"
+                                           class="hidden peer" />
+                                    <label for="featbtn{{ column }}"
+                                           class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                        <div class="block" >
+                                            <div class="w-full text-xs font-bold" >{{ column }}</div >
+                                        </div >
+                                    </label >
+                                </li >
+                            {% endfor %}
+
+                        </ul >
+                    </div >
+                </div >
+                {% comment %} METHOD SELECTION {% endcomment %}
+                <div class="flex flex-row w-full justify-between overflow-auto" >
+                    <div class="flex flex-col w-1/2 m-4 px-4" >
+                        <h3 class="text-xs font-bold text-slate-700" >Choose a Method:</h3 >
+                        <ul class="flex flex-col space-y-3 p-2 w-full overflow-auto" >
+                            <h3 class="text-xs text-slate-700" >Selection</h3 >
+                            <li id="methodRFE" >
+                                <input type="checkbox" id="checkMethodRFE" name="selection" value="RFE"
+                                       class="hidden peer" required >
+                                <label for="checkMethodRFE"
+                                       class="inline-flex items-center justify-between w-full px-5 py-3 text-slate-500 bg-white border-4 border-slate-200 rounded-lg cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-slate-600 hover:bg-slate-100 transition-all" >
+                                    <div class="block" >
+                                        <div class="w-full text-base font-semibold" >RFE</div >
+                                        <div class="w-full text-xs" >Recursive Feature Elimination</div >
+                                        <div class="w-full text-xs pl-4" >based on a target classification</div >
+                                    </div >
+                                    <svg aria-hidden="true" class="w-6 h-6 ml-3" fill="currentColor" viewBox="0 0 20 20"
+                                         xmlns="http://www.w3.org/2000/svg" >
+                                        <path fill-rule="evenodd"
+                                              d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                                              clip-rule="evenodd" ></path >
+                                    </svg >
+                                </label >
+                            </li >
+                            <li id="methodMRMR" >
+                                <input type="checkbox" id="checkMethodMRMR" name="selection" value="MRMR"
+                                       class="hidden peer" required >
+                                <label for="checkMethodMRMR"
+                                       class="inline-flex items-center justify-between w-full px-5 py-3 text-slate-500 bg-white border-4 border-slate-200 rounded-lg cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-slate-600 hover:bg-slate-100 transition-all" >
+                                    <div class="block" >
+                                        <div class="w-full text-base font-semibold" >MRMR</div >
+                                        <div class="w-full text-xs" >Maximum Relevance — Minimum Redundancy</div >
+                                        <div class="w-full text-xs pl-4" >based on a target classification</div >
+                                    </div >
+                                    <svg aria-hidden="true" class="w-6 h-6 ml-3" fill="currentColor" viewBox="0 0 20 20"
+                                         xmlns="http://www.w3.org/2000/svg" >
+                                        <path fill-rule="evenodd"
+                                              d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                                              clip-rule="evenodd" ></path >
+                                    </svg >
+                                </label >
+                            </li >
+                            {% comment %}
+                            <li id="methodSupervised" >
+                                <input type="checkbox" id="checkMethodSupervised" name="selection" value="Supervised"
+                                       class="hidden peer" required disabled >
+                                <label for="checkMethodSupervised"
+                                       class="inline-flex items-center justify-between w-full px-5 py-3 text-slate-500 bg-white border-4 border-slate-200 rounded-lg cursor-not-allowed peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-slate-600 hover:bg-slate-100 transition-all" >
+                                    <div class="block" >
+                                        <div class="w-full text-base font-semibold" >Supervised</div >
+                                        <div class="w-full text-xs" >based on a target classification</div >
+                                    </div >
+                                    <svg aria-hidden="true" class="w-6 h-6 ml-3" fill="currentColor" viewBox="0 0 20 20"
+                                         xmlns="http://www.w3.org/2000/svg" >
+                                        <path fill-rule="evenodd"
+                                              d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                                              clip-rule="evenodd" ></path >
+                                    </svg >
+                                </label >
+                            </li >
+                            <li id="methodNonSupervised" >
+                                <input type="checkbox" id="checkMethodNonSupervised" name="selection"
+                                       value="NonSupervised" class="hidden peer" required disabled >
+                                <label for="checkMethodNonSupervised"
+                                       class="inline-flex items-center justify-between w-full px-5 py-3 text-slate-500 bg-white border-4 border-slate-200 rounded-lg cursor-not-allowed peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-slate-600 hover:bg-slate-100 transition-all" >
+                                    <div class="block" >
+                                        <div class="w-full text-base font-semibold" >Non Supervised</div >
+                                        <div class="w-full text-xs" ></div >
+                                    </div >
+                                    <svg aria-hidden="true" class="w-6 h-6 ml-3" fill="currentColor" viewBox="0 0 20 20"
+                                         xmlns="http://www.w3.org/2000/svg" >
+                                        <path fill-rule="evenodd"
+                                              d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                                              clip-rule="evenodd" ></path >
+                                    </svg >
+                                </label >
+                            </li >
+                            {% endcomment %}
+                            <hr class="w-full mx-auto m-6 bg-slate-800" />
+                            <h3 class="text-xs text-slate-700" >Reduction</h3 >
+                            <li id="methodMDS" >
+                                <input type="checkbox" id="checkMethodMDS" name="reduction" value="MDS"
+                                       class="hidden peer" required disabled >
+                                <label for="checkMethodMDS"
+                                       class="inline-flex items-center justify-between w-full px-5 py-3 text-slate-500 bg-white border-4 border-slate-200 rounded-lg cursor-not-allowed peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-slate-600 hover:bg-slate-100 transition-all" >
+                                    <div class="block" >
+                                        <div class="w-full text-base font-semibold" >MDS</div >
+                                        <div class="w-full text-xs" >Multidimensional Scaling</div >
+                                    </div >
+                                    <svg aria-hidden="true" class="w-6 h-6 ml-3" fill="currentColor" viewBox="0 0 20 20"
+                                         xmlns="http://www.w3.org/2000/svg" >
+                                        <path fill-rule="evenodd"
+                                              d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                                              clip-rule="evenodd" ></path >
+                                    </svg >
+                                </label >
+                            </li >
+                            <li id="methodPCA" >
+                                <input type="checkbox" id="checkMethodPCA" name="reduction" value="PCA"
+                                       class="hidden peer" required >
+                                <label for="checkMethodPCA"
+                                       class="inline-flex items-center justify-between w-full px-5 py-3 text-slate-500 bg-white border-4 border-slate-200 rounded-lg cursor-pointer peer-checked:border-blue-600 peer-checked:text-blue-600 hover:text-slate-600 hover:bg-slate-100 transition-all" >
+                                    <div class="block" >
+                                        <div class="w-full text-base font-semibold" >PCA</div >
+                                        <div class="w-full text-xs" >Principal Component Analysis</div >
+                                    </div >
+                                    <svg aria-hidden="true" class="w-6 h-6 ml-3" fill="currentColor" viewBox="0 0 20 20"
+                                         xmlns="http://www.w3.org/2000/svg" >
+                                        <path fill-rule="evenodd"
+                                              d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+                                              clip-rule="evenodd" ></path >
+                                    </svg >
+                                </label >
+                            </li >
+                        </ul >
+                    </div >
+                    {% comment %} TODO: PANEL OPTIONS -> INPUTS & SELECTS {% endcomment %}
+                    <div class="w-1/2 mt-14 mb-4 pr-10" >
+                        <div id="paneloptionsRFE" class="hidden flex-col" >
+                            <div class="flex flex-col w-full p-4 rounded-lg bg-white" >
+                                <p class="text-slate-600 text-sm font-bold" >RFE Options</p >
+                                <div class="w-full m-2 p-2 rounded-lg ring-2 ring-slate-900/5 space-y-2" >
+                                    <div class="flex flex-row align-content-center space-x-4" >
+                                        <label for="newdimRFE"
+                                               class="text-right text-slate-800 text-xs font-bold w-1/2 my-auto" >Number
+                                            of Features</label >
+                                        <input class="my-auto w-1/2 border border-slate-900/5 font-bold text-slate-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 pl-4 py-4"
+                                               id="newdimRFE"
+                                               type="number"
+                                               lang="en"
+                                               min="2"
+                                               max="{{ snfeatures|add:'-1' }}"
+                                               value="2"
+                                               name="RFEnfeat" />
+                                    </div >
+                                    <div class="flex flex-row align-content-center space-x-4" >
+                                        <label for="RFEkernel"
+                                               class="text-right text-slate-800 text-xs font-bold w-1/2 my-auto" >Kernel
+                                            for SVM Estimator</label >
+                                        <select name="RFEKernel" id="RFEKernel"
+                                                class="text-sm mt-2 mx-auto w-1/2 border border-slate-900/5 font-bold text-slate-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-10 pl-4" >
+                                            <option value="linear" >Linear</option >
+                                            <option value="rbf" disabled >RBF</option > {# Disabled for Corrections in the pipeline - remove disables when corrected #}
+                                        </select >
+                                    </div >
+                                    <div class="flex flex-row align-content-center space-x-4" >
+                                        <label for="RFE_C"
+                                               class="text-right text-slate-800 text-xs font-bold w-1/2 my-auto" >C for
+                                            SVM Estimator</label >
+                                        <input class="my-auto w-1/2 border border-slate-900/5 font-bold text-slate-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 pl-4 py-4"
+                                               id="RFE_C"
+                                               type="number"
+                                               lang="en"
+                                               min="0.1"
+                                               max="5"
+                                               value="1"
+                                               name="RFE_C" />
+                                    </div >
+                                    <div class="flex flex-row align-content-center space-x-4" >
+                                        <label for="RFEstep"
+                                               class="text-right text-slate-800 text-xs font-bold w-1/2 my-auto" >Step</label >
+                                        <input class="my-auto w-1/2 border border-slate-900/5 font-bold text-slate-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 pl-4 py-4"
+                                               id="RFEstep"
+                                               type="number"
+                                               lang="en"
+                                               min="1"
+                                               max="25"
+                                               value="1"
+                                               name="RFEstep" />
+                                    </div >
+                                </div >
+                            </div >
+                            <div class="flex flex-col h-56 w-full overflow-auto mt-4 pt-2 pb-1 px-4 rounded-lg ring-2 ring-slate-900/5" >
+                                <div class="flex flex-row justify-between mb-1" >
+                                    <p class="text-sm text-slate-700 font-bold" >
+                                        Help
+                                    </p >
+                                </div >
+                                <div class="text-slate-900 overflow-auto -mx-4 px-4" >
+                                    <p class="text-justify text-xs" >
+                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc non lectus in
+                                        sapien auctor bibendum. Phasellus tortor leo, porttitor at ligula non, volutpat
+                                        faucibus orci. Sed nisl enim, convallis malesuada nisl vitae, pellentesque
+                                        accumsan tortor. Vivamus consectetur dui gravida, sollicitudin est sit amet,
+                                        volutpat orci. Fusce placerat ex quis nibh congue, et dignissim tortor
+                                        dignissim. Integer eros tortor, accumsan et facilisis sed, fringilla luctus
+                                        nibh. Nam fringilla scelerisque tellus, nec malesuada ipsum molestie eget. Nulla
+                                        sed commodo turpis. Praesent congue congue aliquet. Proin efficitur, nibh a
+                                        pellentesque convallis, quam ex tempus nisi, sed fringilla tortor metus volutpat
+                                        nibh. Pellentesque ut iaculis ex. Nunc egestas neque eu feugiat mattis. Proin
+                                        dignissim metus ac ante pulvinar elementum. Morbi tempor mauris vel tortor
+                                        rutrum, sed facilisis sem elementum. Nulla lectus elit, maximus in porta
+                                        feugiat, sodales sed lacus.
+                                        <img src="{% static 'app/img/windowing.png' %}" class="w-full text-xs" />
+                                    </p >
+                                </div >
+                            </div >
+                        </div >
+                        <div id="paneloptionsMRMR" class="hidden flex-col" >
+                            <div class="flex flex-col w-full p-4 rounded-lg bg-white" >
+                                <p class="text-slate-600 text-sm font-bold" >MRMR Options</p >
+                                <div class="w-full m-2 p-2 rounded-lg ring-2 ring-slate-900/5 space-y-2" >
+                                    <div class="flex flex-row align-content-center space-x-4" >
+                                        <label for="MRMRk"
+                                               class="text-right text-slate-800 text-xs font-bold w-1/2 my-auto" >Number
+                                            of Features</label >
+                                        <input class="my-auto w-1/2 border border-slate-900/5 font-bold text-slate-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 pl-4 py-4"
+                                               id="MRMRk"
+                                               type="number"
+                                               lang="en"
+                                               min="2"
+                                               max="{{ snfeatures|add:'-1' }}"
+                                               value="2"
+                                               name="MRMRk" />
+                                    </div >
+                                </div >
+                            </div >
+                            <div class="flex flex-col h-56 w-full overflow-auto mt-4 pt-2 pb-1 px-4 rounded-lg ring-2 ring-slate-900/5" >
+                                <div class="flex flex-row justify-between mb-1" >
+                                    <p class="text-sm text-slate-700 font-bold" >
+                                        Help
+                                    </p >
+                                </div >
+                                <div class="text-slate-900 overflow-auto -mx-4 px-4" >
+                                    <p class="text-justify text-xs" >
+                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc non lectus in
+                                        sapien auctor bibendum. Phasellus tortor leo, porttitor at ligula non, volutpat
+                                        faucibus orci. Sed nisl enim, convallis malesuada nisl vitae, pellentesque
+                                        accumsan tortor. Vivamus consectetur dui gravida, sollicitudin est sit amet,
+                                        volutpat orci. Fusce placerat ex quis nibh congue, et dignissim tortor
+                                        dignissim. Integer eros tortor, accumsan et facilisis sed, fringilla luctus
+                                        nibh. Nam fringilla scelerisque tellus, nec malesuada ipsum molestie eget. Nulla
+                                        sed commodo turpis. Praesent congue congue aliquet. Proin efficitur, nibh a
+                                        pellentesque convallis, quam ex tempus nisi, sed fringilla tortor metus volutpat
+                                        nibh. Pellentesque ut iaculis ex. Nunc egestas neque eu feugiat mattis. Proin
+                                        dignissim metus ac ante pulvinar elementum. Morbi tempor mauris vel tortor
+                                        rutrum, sed facilisis sem elementum. Nulla lectus elit, maximus in porta
+                                        feugiat, sodales sed lacus.
+                                        <img src="{% static 'app/img/windowing.png' %}" class="w-full text-xs" />
+                                    </p >
+                                </div >
+                            </div >
+                        </div >
+                        <div id="paneloptionsSupervised" class="hidden flex-col" >
+                            <div class="flex flex-col w-full p-4 rounded-lg bg-white" >
+                                <p class="text-slate-600 text-sm font-bold" >Supervised Options</p >
+                            </div >
+                        </div >
+                        <div id="paneloptionsNonSupervised" class="hidden flex-col" >
+                            <div class="flex flex-col w-full p-4 rounded-lg bg-white" >
+                                <p class="text-slate-600 text-sm font-bold" >Unsupervised Options</p >
+                            </div >
+                        </div >
+                        <div id="paneloptionsMDS" class="hidden flex-col" >
+                            <div class="flex flex-col w-full p-4 rounded-lg bg-white" >
+                                <p class="text-slate-600 text-sm font-bold" >MDS Options</p >
+                                <div class="flex flex-row w-full" >
+                                    <div class="w-1/3 m-2 p-2 rounded-lg ring-2 ring-slate-900/5" >
+                                        <p class="text-center text-slate-800 text-xs font-bold" >Reduced Dimension</p >
+                                        <input class="mt-3 w-full border border-slate-900/5 font-bold text-slate-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 pl-4 py-4"
+                                               id="newdimMDS"
+                                               type="number"
+                                               lang="en"
+                                               min="2"
+                                               max="{{ snfeatures|add:'-1' }}"
+                                               value="2"
+                                               name="mdsdim" />
+                                    </div >
+                                    <div class="w-2/3 m-2 p-2 rounded-lg ring-2 ring-slate-900/5" >
+                                        <p class="text-center text-slate-800 text-xs font-bold" >Goodness of fit
+                                            Criterion</p >
+                                        <ul class="flex flex-wrap" >
+                                            <li >
+                                                <input type="checkbox"
+                                                       name="mdsoption"
+                                                       id="mdsoptstress"
+                                                       value="stress"
+                                                       class="hidden peer" required checked />
+                                                <label for="mdsoptstress"
+                                                       class="mx-1 my-1 inline-flex items p-1 px-2 font-bold text-xs text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                                    stress
+                                                </label >
+                                            </li >
+                                            <li >
+                                                <input type="checkbox"
+                                                       name="mdsoption"
+                                                       id="mdsoptsstress"
+                                                       value="sstress"
+                                                       class="hidden peer" required />
+                                                <label for="mdsoptsstress"
+                                                       class="mx-1 my-1 inline-flex items p-1 px-2 font-bold text-xs text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                                    sstress
+                                                </label >
+                                            </li >
+                                            <li >
+                                                <input type="checkbox"
+                                                       name="mdsoption"
+                                                       id="mdsoptmetricstress"
+                                                       value="metricstress"
+                                                       class="hidden peer" required />
+                                                <label for="mdsoptmetricstress"
+                                                       class="mx-1 my-1 inline-flex items p-1 px-2 font-bold text-xs text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                                    metricstress
+                                                </label >
+                                            </li >
+                                            <li >
+                                                <input type="checkbox"
+                                                       name="mdsoption"
+                                                       id="mdsoptmetricsstress"
+                                                       value="metricsstress"
+                                                       class="hidden peer" required />
+                                                <label for="mdsoptmetricsstress"
+                                                       class="mx-1 my-1 inline-flex items p-1 px-2 font-bold text-xs text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                                    metricsstress
+                                                </label >
+                                            </li >
+                                            <li >
+                                                <input type="checkbox"
+                                                       name="mdsoption"
+                                                       id="mdsoptsammon"
+                                                       value="sammon"
+                                                       class="hidden peer" required />
+                                                <label for="mdsoptsammon"
+                                                       class="mx-1 my-1 inline-flex items p-1 px-2 font-bold text-xs text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                                    sammon
+                                                </label >
+                                            </li >
+                                            <li >
+                                                <input type="checkbox"
+                                                       name="mdsoption"
+                                                       id="mdsoptstrain"
+                                                       value="strain"
+                                                       class="hidden peer" required />
+                                                <label for="mdsoptstrain"
+                                                       class="mx-1 my-1 inline-flex items p-1 px-2 font-bold text-xs text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all" >
+                                                    strain
+                                                </label >
+                                            </li >
+
+                                        </ul >
+                                    </div >
+                                </div >
+                            </div >
+                            <div class="flex flex-col h-56 w-full overflow-auto mt-4 pt-2 pb-1 px-4 rounded-lg ring-2 ring-slate-900/5" >
+                                <div class="flex flex-row justify-between mb-1" >
+                                    <p class="text-sm text-slate-700 font-bold" >
+                                        Help
+                                    </p >
+
+                                </div >
+                                <div class="text-slate-900 overflow-auto -mx-4 px-4" >
+                                    <p class="text-justify text-xs" >
+                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc non lectus in
+                                        sapien auctor bibendum. Phasellus tortor leo, porttitor at ligula non, volutpat
+                                        faucibus orci. Sed nisl enim, convallis malesuada nisl vitae, pellentesque
+                                        accumsan tortor. Vivamus consectetur dui gravida, sollicitudin est sit amet,
+                                        volutpat orci. Fusce placerat ex quis nibh congue, et dignissim tortor
+                                        dignissim. Integer eros tortor, accumsan et facilisis sed, fringilla luctus
+                                        nibh. Nam fringilla scelerisque tellus, nec malesuada ipsum molestie eget. Nulla
+                                        sed commodo turpis. Praesent congue congue aliquet. Proin efficitur, nibh a
+                                        pellentesque convallis, quam ex tempus nisi, sed fringilla tortor metus volutpat
+                                        nibh. Pellentesque ut iaculis ex. Nunc egestas neque eu feugiat mattis. Proin
+                                        dignissim metus ac ante pulvinar elementum. Morbi tempor mauris vel tortor
+                                        rutrum, sed facilisis sem elementum. Nulla lectus elit, maximus in porta
+                                        feugiat, sodales sed lacus.
+                                        <img src="{% static 'app/img/windowing.png' %}" class="w-full text-xs" />
+                                    </p >
+                                </div >
+                            </div >
+                        </div >
+                        <div id="paneloptionsPCA" class="hidden flex-col" >
+                            <div class="flex flex-col w-full p-4 rounded-lg bg-white" >
+                                <p class="text-slate-600 text-sm font-bold" >PCA Options</p >
+                                <div class="w-full m-2 p-2 rounded-lg ring-2 ring-slate-900/5" >
+                                    <p class="text-center text-slate-800 text-xs font-bold" >Number of Components</p >
+                                    <select name="PCAnComponents" id="PCAnConponents"
+                                            class="text-sm mt-2 mx-auto w-fit border border-slate-900/5 font-bold text-slate-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-10 pl-4" >
+                                        <option value="kaiser" >Kaiser Criteria</option >
+                                        <option value="explainedVariance" >Explained Variance</option >
+                                        <option value="scree" >Scree Rule</option >
+                                        <option value="manual" >Manual</option >
+                                    </select >
+                                    <input class="hidden mt-3 mx-auto w-fit border border-slate-900/5 font-bold text-slate-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 pl-4 py-4"
+                                           id="newdimPCA"
+                                           type="number"
+                                           lang="en"
+                                           min="2"
+                                           max="{{ snfeatures|add:'-1' }}"
+                                           value="2"
+                                           name="pcadim" />
+                                    <input class="hidden mt-3 mx-auto w-fit border border-slate-900/5 font-bold text-slate-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 pl-4 py-4"
+                                           id="thresholdPCA"
+                                           type="number"
+                                           lang="en"
+                                           min="0"
+                                           step="0.01"
+                                           max="1"
+                                           value="0.70"
+                                           name="thresholdPCA" />
+                                    <input class="hidden mt-3 mx-auto w-fit border border-slate-900/5 font-bold text-slate-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block h-6 pl-4 py-4"
+                                           id="epsilonPCA"
+                                           type="number"
+                                           lang="en"
+                                           min="0"
+                                           step="0.01"
+                                           value="0.01"
+                                           name="epsilonPCA" />
+                                </div >
+                            </div >
+                            <div class="flex flex-col h-56 w-full overflow-auto mt-4 pt-2 pb-1 px-4 rounded-lg ring-2 ring-slate-900/5" >
+                                <div class="flex flex-row justify-between mb-1" >
+                                    <p class="text-sm text-slate-700 font-bold" >
+                                        Help
+                                    </p >
+                                </div >
+                                <div class="text-slate-900 overflow-auto -mx-4 px-4" >
+                                    <p class="text-justify text-xs" >
+                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc non lectus in
+                                        sapien auctor bibendum. Phasellus tortor leo, porttitor at ligula non, volutpat
+                                        faucibus orci. Sed nisl enim, convallis malesuada nisl vitae, pellentesque
+                                        accumsan tortor. Vivamus consectetur dui gravida, sollicitudin est sit amet,
+                                        volutpat orci. Fusce placerat ex quis nibh congue, et dignissim tortor
+                                        dignissim. Integer eros tortor, accumsan et facilisis sed, fringilla luctus
+                                        nibh. Nam fringilla scelerisque tellus, nec malesuada ipsum molestie eget. Nulla
+                                        sed commodo turpis. Praesent congue congue aliquet. Proin efficitur, nibh a
+                                        pellentesque convallis, quam ex tempus nisi, sed fringilla tortor metus volutpat
+                                        nibh. Pellentesque ut iaculis ex. Nunc egestas neque eu feugiat mattis. Proin
+                                        dignissim metus ac ante pulvinar elementum. Morbi tempor mauris vel tortor
+                                        rutrum, sed facilisis sem elementum. Nulla lectus elit, maximus in porta
+                                        feugiat, sodales sed lacus.
+                                        <img src="{% static 'app/img/windowing.png' %}" class="w-full text-xs" />
+                                    </p >
+                                </div >
+                            </div >
+                        </div >
+                    </div >
+                </div >
+                <div id="paneloptionsFlag"
+                     class="hidden absolute w-full h-full backdrop-blur-[3px] bg-white/30" >
+                    <div class="flex flex-col justify-evenly rounded-lg ring-4 ring-slate-900/5 w-1/2 mx-auto my-28 p-4 font-bold text-center" >
+                        <p >Something went wrong.<br >The file is missing, so there's no chance on creating a study.
+                        </p >
+                    </div >
+                </div >
+                {% comment %} LOADING SCREEN {% endcomment %}
+                <div id="loading"
+                     class="hidden absolute h-full w-full backdrop-blur-sm bg-white/30 text-center" >
+                    <div class="my-40" >
+                        <button disabled
+                                type="button"
+                                class="text-slate-800 text-lg font-bold bg-slate-900/5 rounded-lg px-5 py-2.5 text-center mr-2 inline-flex items-center" >
+                            <svg class="inline w-6 h-6 mr-3 text-slate-800 motion-safe:animate-spin"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 xmlns="http://www.w3.org/2000/svg" >
+                                <path
+                                        opacity="0.2"
+                                        fill-rule="evenodd"
+                                        clip-rule="evenodd"
+                                        d="M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19ZM12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                        fill="currentColor"
+                                />
+                                <path
+                                        d="M2 12C2 6.47715 6.47715 2 12 2V5C8.13401 5 5 8.13401 5 12H2Z"
+                                        fill="currentColor"
+                                />
+                            </svg >
+                            Loading...
+                        </button >
+                    </div >
+                </div >
+            </div >
+            {% comment %} PATIENT FAST DETAILS AND HELP SECTION {% endcomment %}
+            <div class="relative flex flex-col h-full w-1/4 mr-4" >
+                {% comment %} INFOS {% endcomment %}
+                <div class="flex flex-col h-1/2 w-full rounded-lg m-2 py-2 px-4 border-b-2 overflow-auto" >
+                    <p class="text-sm text-slate-800 font-bold mb-2" >
+                        Feature Extraction Study
+                    </p >
+                    <div class="h-[70%] overflow-auto -mx-4 px-4" >
+                        <table class="w-full text-xs text-left text-slate-500" >
+                            <tbody >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                    ID
+                                </th >
+                                <td id="sid" class="px-4" >
+                                    {{ studyId }}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                    Channels
+                                </th >
+                                <td id="schannels" class="px-4" >
+                                    {{ schannels|length }}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                    Features Group
+                                </th >
+                                <td id="sfeatures" class="px-4" >
+                                    {{ sfeatures|length }}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                    Filter
+                                </th >
+                                <td id="sfilter" class="px-4" >
+                                    {{ sfilter }}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                    Window Size
+                                </th >
+                                <td id="swindowsize" class="px-4" >
+                                    {{ swindowsize }}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                    Window Step
+                                </th >
+                                <td id="swindowstep" class="px-4" >
+                                    {{ swindowstep }}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                    Number of Samples
+                                </th >
+                                <td id="snsamples" class="px-4" >
+                                    {{ snsamples }}
+                                </td >
+                            </tr >
+                            <tr >
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                    Number of Features
+                                </th >
+                                <td id="snfeatures" class="px-4" >
+                                    {{ snfeatures }}
+                                </td >
+                            </tr >
+                            </tbody >
+                        </table >
+                    </div >
+                    {% if study.type == 'extraction' %}
+                        <a href="{% url 'extractionStudy' studyId %}"
+                           id="detailsBtn"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="flex flex-row group mt-auto ml-auto mb-1 rounded-lg ring-2 ring-blue-600 hover:bg-slate-800 hover:shadow-md p-1 items-center transition-all" >
+                            <div class="font-bold text-xs items-center group-hover:text-white transition-all" >
+                                more details
+                            </div >
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke-width="1.5"
+                                 class="ml-2 w-4 h-4 stroke-blue-600 group-hover:stroke-white transition-all" >
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg >
+                        </a >
+                    {% else %}
+                        <a href="{% url 'normalizationStudy' studyId %}"
+                           id="detailsBtn"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="flex flex-row group mt-auto ml-auto mb-1 rounded-lg ring-2 ring-blue-600 hover:bg-slate-800 hover:shadow-md p-1 items-center transition-all" >
+                            <div class="font-bold text-xs items-center group-hover:text-white transition-all" >
+                                more details
+                            </div >
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke-width="1.5"
+                                 class="ml-2 w-4 h-4 stroke-blue-600 group-hover:stroke-white transition-all" >
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg >
+                        </a >
+                    {% endif %}
+
+                </div >
+                {% comment %} GRAPHS {% endcomment %}
+                <div class="flex flex-col h-1/2 w-full rounded-lg m-2 py-2 px-4 border-b-2 overflow-auto" >
+                    <p class="text-sm text-slate-800 font-bold mb-4" >
+                        Extracted Feature data
+                    </p >
+                    <div id="nothingpanel"
+                         class="hidden mx-auto my-auto text-base text-slate-500" >
+                        Nothing to Show
+                    </div >
+                    <div id="graphsPanel" class="h-[68%] overflow-y-auto overflow-x-hidden -mx-4 pr-4" >
+                        {% if info %}
+                            {% for feature in info.0 %}
+                                <p id="{{ feature }}div"
+                                   class="w-fit text-slate-800 text-xs font-bold mb-2 ml-4" >{{ feature }}:</p >
+                                {% comment %} ! ATENCAO A ESTA TAG (VER TAMBEM A FUNCAO GET GRAPHS) {% endcomment %}
+                                {% for option in info.1|get:forloop.counter0 %}
+                                    {% for channel in info.2 %}
+                                        <div id="graphnone_{{ feature }}_{{ option }}_{{ channel }}" class="w-full" >
+                                        </div >
+                                    {% endfor %}
+                                {% endfor %}
+                            {% endfor %}
+                        {% endif %}
+                    </div >
+                    <a href="{% url 'plotFeature' studyId 30 0 %}"
+                       id="plotBtn"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="flex flex-row group mt-auto ml-auto mb-1 rounded-lg ring-2 ring-blue-600 hover:bg-slate-800 hover:shadow-md p-1 items-center transition-all" >
+                        <div class="font-bold text-xs items-center group-hover:text-white transition-all" >
+                            more details
+                        </div >
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="1.5"
+                             class="ml-2 w-4 h-4 stroke-blue-600 group-hover:stroke-white transition-all" >
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                        </svg >
+                    </a >
+                </div >
+            </div >
+        </div >
+        {% comment %} OPTIONS SUMMARY {% endcomment %}
+        <div id="paneloptionsSummary"
+             class="hidden absolute w-full h-full backdrop-blur-[1px] bg-white/30" >
+            <div class="flex flex-col rounded-lg ring-4 ring-slate-900/5 bg-white w-1/2 mx-auto my-20 p-4" >
+                <p class="font-bold text-slate-700 mb-2" >
+                    Your options summary
+                </p >
+                <div class="flex flex-wrap space-x-8 m-4 text-slate-900 justify-center" >
+                    <div class="flex flex-col h-fit rounded-lg p-2 ring-2 shadow-sm ring-slate-900/5 text-xs text-center" >
+                        <p class="font-bold text-slate-700 mb-2" >
+                            Extracted Features Dataset
+                        </p >
+                        <div id="datasetsummary" >
+                        </div >
+                    </div >
+                    <div class="flex flex-col h-fit max-h-80 rounded-lg p-2 ring-2 overflow-y-auto shadow-sm ring-slate-900/5 text-xs text-center" >
+                        <p class="font-bold text-slate-700 mb-2" >
+                            Data
+                        </p >
+                        <div id="datafeatsummary" >
+                        </div >
+                    </div >
+                    <div class="flex flex-col h-fit rounded-lg p-2 ring-2 shadow-sm ring-slate-900/5 text-xs text-center" >
+                        <p class="font-bold text-slate-700 mb-2" >
+                            Selection Method
+                        </p >
+                        <div id="selectionsummary" >
+                        </div >
+                    </div >
+                    <div class="flex flex-col h-fit rounded-lg p-2 ring-2 shadow-sm ring-slate-900/5 text-xs text-center" >
+                        <p class="font-bold text-slate-700 mb-2" >
+                            Reduction Method
+                        </p >
+                        <div id="reductionsummary" >
+                        </div >
+                    </div >
+                </div >
+                <div id="warnings"
+                     class="max-w-fit max-h-fit rounded-lg p-2 m-auto my-2 font-bold text-xs text-white text-center bg-slate-800" >
+                </div >
+                <div class="flex flex-col w-full border-t pt-4 space-y-4" >
+                    <div class="flex flex-row space-x-2 justify-center" >
+                        <label for="setname" class="text-slate-700 text-sm font-bold my-auto" >Enter a name for your
+                            feature dataset:
+                        </label >
+                        <input type="text" id="setname"
+                               class="border border-slate-200 text-slate-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 w-1/2 p-1 text-xs"
+                               placeholder="ex: fp1_wavelets" required >
+                    </div >
+                    <div class="flex flex-row space-x-4 ml-auto justify-end" >
+                        <button id="closeSummary"
+                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-sm items-center hover:bg-slate-800 hover:text-white transition-all" >
+                            Cancel
+                        </button >
+                        <button id="submitSummary" type="submit"
+                                formmethod="post"
+                                id="confirmSummary"
+                                class="rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-sm items-center hover:bg-slate-800 hover:text-white transition-all" >
+                            Submit
+                        </button >
+                        <button id="submitSummaryBlocked" type="submit"
+                                formmethod="post"
+                                id="confirmSummary"
+                                class="hidden rounded-lg ring-2 ring-blue-600 hover:shadow-md p-1 font-bold text-sm items-center opacity-50 cursor-not-allowed transition-all" >
+                            Submit
+                        </button >
+                    </div >
+                </div >
+            </div >
+        </div >
+    </section >
+{% endblock content %}
+{% block scripts %}
+    <script async >
+        function getGraphs(signal, signalTime, filter) {
+            for (let feat = 0; feat < (info[0].length); feat++) {
+                for (let featoption = 0; featoption < (info[1][feat].length); featoption++) {
+                    for (let channel = 0; channel < (info[2].length); channel++) {
+                        let traceColor = 'rgb(37, 99, 235)';
+                        const trace = {
+                            y: signal[feat][featoption][channel],
+                            x: signalTime,
+                            type: 'scatter',
+                            name: info[2][channel] + '_' + info[1][feat][featoption],
+                            line: {
+                                color: traceColor,
+                                width: 1
+                            }
+                        };
+                        const data = [trace];
+                        const layout = {
+                            showlegend: true,
+                            legend: {
+                                size: 1,
+                                font: {
+                                    family: 'sans-serif',
+                                    size: 8,
+                                },
+                            },
+                            xaxis: {
+                                showticklabels: false,
+                                showgrid: false,
+                            },
+                            yaxis: {
+                                title: {
+                                    text: '',
+                                },
+                                showgrid: false,
+                                showticklabels: false,
+                            },
+                            height: 30,
+                            //TODO: COMPOR ISTO DO RESPONSIVE (O PROBLEMA ESTA EM FAZER BUILD NUMA HIDDEN DIV)
+                            autosize: true,
+                            margin: {
+                                t: 0,
+                                b: 10,
+                                r: 0,
+                                l: 20,
+                            },
+                        }
+                        //! 30/05: info[1][featoption]  ->   info[1][feat][featoption]
+                        Plotly.newPlot('graph' + filter + '_' + info[0][feat] + '_' + info[1][feat][featoption] + '_' + info[2][channel], data, layout, {
+                            displaylogo: false,
+                            responsive: true,
+                            modeBarButtonsToRemove: ['pan2d', 'select2d', 'lasso2d', 'zoomOut2d', 'zoomIn2d', 'zoom2d', 'autoscale2d']
+                        });
+                    }
+                }
+            }
+        }
+
+        window.addEventListener("load", (event) => {
+            {% if signal %}
+                info = {{ info|safe }};
+                actualSignal = {{signal|safe}};
+                actualTime = {{signaltime|safe}};
+                getGraphs(actualSignal, actualTime, "none");
+            {% else %}
+                document.querySelectorAll('[id^="graph"]').forEach(item => {
+                    item.innerHTML = '';
+                });
+                document.getElementById('plotBtn').classList.add('hidden');
+                document.getElementById('nothingpanel').classList.remove('hidden');
+                const btn = document.getElementById("optionsSummary")
+                btn.disabled = true;
+                btn.classList.replace("cursor-pointer", "cursor-not-allowed");
+                document.getElementById("paneloptionsFlag").classList.remove('hidden');
+            {% endif %}
+            {% if previous|length == 0 %}
+                $("#studiesTable tbody").append('Nothing to Show');
+            {% endif %}
+        });
+    </script >
+    <script >
+        //DATASET SELECTION
+        $("input[name='studiesradio']").change(function () {
+            const study = $("input[name='studiesradio']:checked").val().replace('extract', '').replace('norm', '');
+
+            // UPDATE STUDY INFOS TABLE
+            $('#graphsPanel').empty();
+            $('#studiesTable').find('tbody').empty();
+            $('#nothingpanel').addClass('hidden');
+            $('#paneloptionsFlag').addClass('hidden');
+            $('#loading').removeClass('hidden');
+            $('#datalist').empty();
+            $('#featbtnalldata').prop('checked', false);
+            $('#optionsSummary').prop('disabled', false);
+            $('#optionsSummary').removeClass('cursor-not-allowed');
+            $('#optionsSummary').addClass('cursor-pointer');
+
+            let url = "{{ request.path }}";
+            $.ajax({
+                url: url,
+                type: "POST",
+                data: {
+                    'studyId': study,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                datatype: 'json',
+                success: function (data) {
+                    // UPDATE STUDY INFOS TABLE
+                    $('#sid').text(data.studyId);
+                    $('#schannels').text(data.schannels.length);
+                    $('#sfeatures').text(data.sfeatures.length);
+                    $('#sfilter').text(data.sfilter);
+                    $('#swindowsize').text(data.swindowsize);
+                    $('#swindowstep').text(data.swindowstep);
+                    $('#snsamples').text(data.snsamples);
+                    $('#snfeatures').text(data.snfeatures);
+                    $('#plotBtn').attr('href', '/study/plot/' + data.studyId + '/30/0');
+                    $('#plotBtn').removeClass('hidden');
+
+                    if (data.type == 'extraction') {
+                        $('#detailsBtn').attr('href', '/extractionStudy/' + data.studyId + '/');
+                    } else {
+                        $('#detailsBtn').attr('href', '/normalizationStudy/' + data.studyId);
+                    }
+
+                    // UPDATE PREVIOUS STUDIES TABLE
+                    if (typeof data.names !== 'undefined' && data.names.length > 0) {
+                        setTimeout(() => {
+                            for (i = 0; i < data.names.length; i++) {
+                                let newRowContent = '<tr class="border-b"><th class="px-4 py-2 font-bold text-slate-900">' + data.names[i] + '</th><td class="px-1">by ' + data.res[i] + '</td><td class="px-1"><a href="/selredStudy/' + data.ids[i] + '/" target="_blank" rel="noopener noreferrer"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="ml-2 w-4 h-4 stroke-blue-600 hover:stroke-slate-800 transition-all"><path stroke-linecap="round" stroke-line join="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg></a></td></tr>';
+                                $("#studiesTable tbody").append(newRowContent);
+                            }
+                        }, 10)
+                    } else {
+                        $("#studiesTable tbody").append('Nothing to Show');
+                    }
+                    //UPDATE GRAPHS
+                    if (data.signal) {
+                        info = data.info;
+                        for (i = 0; i < data.info[0].length; i++) {
+                            let feature = data.info[0][i];
+                            $('#graphsPanel').append('<p id="' + feature + 'div" class="w-fit text-slate-700 text-sm font-bold mb-2 ml-4 drop-shadow-lg">' + feature + '</p>');
+                            for (j = 0; j < data.info[1][i].length; j++) {
+                                let option = data.info[1][i][j];
+                                for (k = 0; k < data.info[2].length; k++) {
+                                    let channel = data.info[2][k];
+                                    $('#graphsPanel').append('<div id="graphnone_' + feature + '_' + option + '_' + channel + '" class="w-full"></div>');
+                                }
+                            }
+                        }
+                        getGraphs(data.signal, data.signaltime, "none");
+
+                        //{% comment %} UPDATE DATA SELECTION SECTION  {% endcomment %}
+                        info = data.info;
+                        
+                        let columns = data.columns
+                        for (i=0; i < columns.length; i++) {
+                            $('#datalist').append('<li><input type="checkbox" name="dataselect" id="featbtn' + columns[i] + '" value="' + columns[i] + '" class="hidden peer"/><label for="featbtn' + columns[i] + '" class="inline-flex items-center justify-between w-full p-1 px-2 text-slate-500 bg-white border-2 border-slate-900/5 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-slate-700 peer-checked:text-slate-700 hover:bg-slate-50 transition-all"><div class="block"><div class="w-full text-xs font-bold">' + columns[i] + '</div></div></label></li>');
+                        }
+
+                        document.querySelectorAll('[id^="newdim"]').forEach(function (elem) {
+                            elem.setAttribute("max", (data.snfeatures - 1));
+                            elem.value = 2;
+                        });
+                    } else {
+                        document.getElementById('plotBtn').classList.add('hidden');
+                        document.getElementById('nothingpanel').classList.remove('hidden');
+                        const btn = document.getElementById("optionsSummary")
+                        btn.disabled = true;
+                        btn.classList.replace("cursor-pointer", "cursor-not-allowed");
+                        document.getElementById("paneloptionsFlag").classList.remove('hidden');
+                    }
+                    $('#loading').addClass('hidden');
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert(xhr.status);
+                    alert(thrownError);
+                }
+            });
+        });
+
+        // ALL DATASET SELECTION BUTTONS
+            // FUNCTION TO CHECK IF ALL DATASET BUTTONS ARE CHECKED
+        function updateAllDataSelect() {
+            const allChecked = $('input[name="dataselect"]').length === $('input[name="dataselect"]:checked').length;
+            $('input[name="alldataselect"]').prop('checked', allChecked);
+        }
+        updateAllDataSelect(); // ON LOAD CHECK IF ALL ARE CHECKED
+
+        // ON CHANGE OF INDIVIDUAL DATA BUTTONS CHECK IF ALL ARE CHECKED AND UPDATE ALL DATA BUTTON
+        $(document).on('change', 'input[name="dataselect"]', function () {
+            updateAllDataSelect();
+        });
+
+        const optionsBtns = document.querySelectorAll('[id^="options"],[id^="close"],[id^="submit"]');
+        optionsBtns.forEach(function (elem) {
+            elem.addEventListener("click", (event) => {
+                let btn = elem.id.replace("options", "").replace("close", "").replace("submit", "");
+                document.getElementById('paneloptions' + btn).classList.toggle('hidden');
+                if (elem.id == 'optionsSummary' || elem.id == 'submitSummary') {
+                    document.getElementById('datasetsummary').innerHTML = '';
+                    document.getElementById('datafeatsummary').innerHTML = '';
+                    document.getElementById('selectionsummary').innerHTML = '';
+                    document.getElementById('reductionsummary').innerHTML = '';
+                    document.getElementById('warnings').innerHTML = '';
+                    let study = $('input[name="studiesradio"]:checked').val().replace('extract', '').replace('norm', '');
+                    let datafeat = $('input[name="dataselect"]:checked').map((i, el) => el.value).get();
+                    let selection = $('input[name="selection"]:checked').val() || '';
+                    let reduction = $('input[name="reduction"]:checked').val() || '';
+                    let methods = [selection, reduction];
+                    let methodsoptions = [];
+                    let setname = $('input[id="setname"]').val();
+                    for (let i = 0; i < methods.length; i++) {
+                        let keys = $("#paneloptions" + methods[i]).find("select, input[type='number'], input:checked").map((i, el) => el.name).get();
+                        let values = $("#paneloptions" + methods[i]).find("select, input[type='number'], input:checked").map((i, el) => el.value).get();
+                        let result = {};
+                        keys.forEach((key, i) => result[key] = values[i]);
+                        methodsoptions.push(result);
+                    }
+                    if (elem.id == 'submitSummary') {
+                        let url = "{{ request.path }}";
+                        $.ajax({
+                            url: url,
+                            type: "POST",
+                            data: {
+                                'study': study,
+                                'datafeat[]': datafeat,
+                                'methods[]': methods,
+                                'methodsoptions[][]': JSON.stringify(methodsoptions),
+                                'setname': setname,
+                                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                            },
+                            datatype: 'json',
+                            success: function (data) {
+                                location.replace("{% url 'index' %}")
+                            },
+                        });
+                        return
+                    }
+                    $('#datasetsummary').append('<p>' + study + '</p>');
+                    datafeat.forEach(function (item) {
+                        $('#datafeatsummary').append('<p>' + item + '</p>');
+                    });
+                    $('#selectionsummary').append('<p>' + selection + '</p>');
+                    $('#reductionsummary').append('<p>' + reduction + '</p>');
+                    if (datafeat.length == 0 || (typeof selection == 'undefined' && typeof reduction == 'undefined')) {
+                        document.getElementById('submitSummary').classList.add('hidden');
+                        document.getElementById('submitSummaryBlocked').classList.remove('hidden');
+                        if (datafeat.length == 0 && (typeof selection == 'undefined' && typeof reduction == 'undefined')) {
+                            $('#warnings').append('<p class="text-red-600">At a minimum, you have to select one extracted feature and one method.</p>');
+                        } else if (datafeat.length == 0) {
+                            $('#warnings').append('<p class="text-red-600">No extracted feature from the selected study has been selected. Please go back and select at least one.</p>');
+                        } else if (typeof selection == 'undefined' && typeof reduction == 'undefined') {
+                            $('#warnings').append('<p class="text-red-600">No method has been selected. Please go back and select at least one.</p>');
+                        }
+                    } else {
+                        $('#warnings').append('<p class="text-blue-600 my-1">Depending on your choices, the task may or may not take a good amount of time.</p><p class="text-blue-600 my-1">SUBMIT and you will be notified when the task is completed.</p>');
+                        document.getElementById('submitSummary').classList.remove('hidden');
+                        document.getElementById('submitSummaryBlocked').classList.add('hidden');
+                    }
+                    if (datafeat.length == 0) {
+                        $('#datafeatsummary').html('<p>-</p>');
+                    }
+                    if (typeof reduction == 'undefined') {
+                        $('#reductionsummary').html('<p>-</p>');
+                    }
+                    if (typeof selection == 'undefined') {
+                        $('#selectionsummary').html('<p>-</p>');
+                    }
+                }
+            });
+        });
+        //FOR METHOD CHECKBOXES
+        $('input[type="checkbox"]').on('change', function () {
+                if (this.id.includes("checkMethod") || this.name.includes("option")) {
+                    if (!this.checked && this.name.includes("option")) {
+                        $(this).prop('checked', true);
+                    }
+                    $('input[name="' + this.name + '"]').not(this).prop('checked', false);
+                } else if (this.id.includes("alldata")) {
+                    if (this.checked) {
+                        document.querySelectorAll('[id^="featbtn"]').forEach(item => {
+                            item.checked = true;
+                        });
+                    } else {
+                        document.querySelectorAll('[id^="featbtn"]').forEach(item => {
+                            item.checked = false;
+                        });
+                    }
+                } else {
+                    if (document.getElementById("featbtnalldata").checked) {
+                        document.getElementById("featbtnalldata").checked = false;
+                    }
+                }
+            }
+        );
+        const methodsBtns = document.querySelectorAll('[id^="checkMethod"]');
+        methodsBtns.forEach(function (elem) {
+            elem.addEventListener("click", (event) => {
+                document.querySelectorAll('[id^="paneloptions"]').forEach(item => {
+                    item.classList.add("hidden");
+                });
+                if (elem.checked) {
+                    document.getElementById("paneloptions" + elem.id.replace("checkMethod", "")).classList.toggle("hidden");
+                }
+            });
+        });
+
+        // PCA DIMENSIONALITY
+        $('select[name="PCAnComponents"]').on('change', function () {
+            if (this.value == 'manual') {
+                $('input[id="newdimPCA"]').removeClass('hidden');
+                $('input[id="thresholdPCA"]').addClass('hidden');
+                $('input[id="epsilonPCA"]').addClass('hidden');
+            } else if (this.value == 'explainedVariance') {
+                $('input[id="thresholdPCA"]').removeClass('hidden');
+                $('input[id="newdimPCA"]').addClass('hidden');
+                $('input[id="epsilonPCA"]').addClass('hidden');
+            } else if (this.value == 'scree') {
+                $('input[id="epsilonPCA"]').removeClass('hidden');
+                $('input[id="newdimPCA"]').addClass('hidden');
+                $('input[id="thresholdPCA"]').addClass('hidden');
+            } else {
+                $('input[id="newdimPCA"]').addClass('hidden');
+                $('input[id="thresholdPCA"]').addClass('hidden');
+                $('input[id="epsilonPCA"]').addClass('hidden');
+            }
+        });
+    </script >
+{% endblock scripts %}

@@ -1,0 +1,350 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block content %}
+  {% comment %}NAVBAR{% endcomment %}
+  <nav class="relative container mx-auto mt-1 h-fit text-white rounded-2xl bg-zinc-800 border-4 border-blue-600">
+    <div class="flex flex-row justify-between p-8">
+      <div class="flex flex-col">
+        <a class="text-5xl text-blue-600 font-bold font-mono">EPIWEB</a>
+        <div class="flex flex-col my-auto font-bold space-y-3">
+          <a href="#data" class="hover:text-blue-600 hover:drop-shadow-lg transition-all">Data</a>
+          <a href="#studies" class="hover:text-blue-600 hover:drop-shadow-lg transition-all">Studies</a>
+          <a href="#about" class="hover:text-blue-600 hover:drop-shadow-lg transition-all">About</a>
+          <a href="#help" class="hover:text-blue-600 hover:drop-shadow-lg transition-all">Help</a>
+        </div>
+      </div>
+      <div class="flex flex-col w-2/3">
+        <p class="text-6xl p-10 drop-shadow-lg">Web-based platform for detecting and predicting epileptic seizures.</p>
+        {% comment %}
+        <p class="w-4/5 text-sm -mt-10 ml-11 text-justify">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper.</p>
+        {% endcomment %}
+      </div>
+      <div class="flex flex-row h-fit w-fit justify-between">
+        <div onclick="openNotFunction('notpanel')" class="self-center px-6 stroke-2 stroke-white hover:stroke-blue-600 hover:cursor-pointer transition-all">
+          <svg id="bell" class="h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+          </svg>
+        </div>
+        {% comment %}button{% endcomment %}
+        <a href="{% url 'logoutUser' %}" class="flex rounded-full p-2 w-fit font-bold border-4 border-white bg-white text-slate-900 hover:bg-transparent hover:text-blue-600 hover:border-blue-600 hover:shadow-sm transition-all">Logout</a>
+      </div>
+    </div>
+  </nav>
+  <section>
+    <div class="container flex flex-col font-bold mx-auto mt-20 px-20 w-full space-y-20">
+      <div class="flex flex-row w-full">
+        <div class="flex flex-col w-2/5 text-end">
+          <p class="text-lg">
+            Hello<span class="text-blue-600 ml-2">{{ request.user }}</span>,
+          </p>
+          <h1 class="text-3xl">Welcome to EPIWEB</h1>
+        </div>
+        {% if messages %}
+          <div class="flex flex-col w-2/5 mx-auto justify-evenly rounded-lg bg-gradient-to-b from-slate-800 to-blue-600 p-2 font-bold text-white text-center">
+            {% for message in messages %}
+              <p>{{ message }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+      <div class="flex flex-row space-x-8 justify-between">
+        {% comment %}CURRENT SITUATION{% endcomment %}
+        <div class="flex flex-col w-1/5 ring-4 ring-slate-900/5 rounded-lg h-full px-5 py-10">
+          <p class="text-xs">Your Studies</p>
+          <p class="text-lg -mt-1 mb-4">Current Situation</p>
+          <div class="grid grid-cols-1 gap-4">
+            <div class="flex flex-col p-2 rounded-lg shadow-lg text-sm text-slate-700 ring-4 ring-slate-900/5">
+              <p id="currenttotal" class="text-4xl font-mono">{{ total }}</p>
+              <p class="font-normal">Total</p>
+            </div>
+            <div class="flex flex-col p-2 rounded-lg shadow-lg text-sm text-white ring-4 ring-slate-900/5 bg-gradient-to-b from-slate-800 to-red-600">
+              <p id="currentonqueue" class="text-4xl font-mono">{{ onqueue }}</p>
+              <p class="font-normal">On Queue</p>
+            </div>
+            <div class="flex flex-col p-2 rounded-lg shadow-lg text-sm text-white ring-4 ring-slate-900/5 bg-gradient-to-b from-slate-800 to-amber-600">
+              <p id="currentprocessing" class="text-4xl font-mono">{{ processing }}</p>
+              <p class="font-normal">Processing</p>
+            </div>
+            <div class="flex flex-col p-2 rounded-lg shadow-lg text-sm text-white ring-4 ring-slate-900/5 bg-gradient-to-b from-slate-800 to-blue-600">
+              <p id="currentcompleted" class="text-4xl font-mono">{{ completed }}</p>
+              <p class="font-normal">Completed</p>
+            </div>
+          </div>
+        </div>
+        {% comment %}RECENT ACTIVITY{% endcomment %}
+        <div class="flex flex-col w-4/5 ring-4 ring-slate-900/5 rounded-lg px-5 py-10">
+          <p class="text-lg mb-4">Your Recent Activity</p>
+          <div class="relative overflow-x-auto w-full rounded-lg ring-4 ring-slate-900/5">
+            <table id="myTable" class="w-full h-full text-xs text-left text-slate-500">
+              <thead class="text-slate-700 uppercase bg-slate-900/5">
+                <tr>
+                  <th scope="col" class="px-2 py-3">Study Name</th>
+                  <th scope="col" class="px-2 py-3">
+                    <div class="flex items-center">Patient</div>
+                  </th>
+                  <th scope="col" class="px-2 py-3">
+                    <div class="flex items-center">Type</div>
+                  </th>
+                  <th scope="col" class="px-2 py-3">
+                    <div class="flex items-center">Date</div>
+                  </th>
+                  <th scope="col" class="px-2 py-3">
+                    <span class="sr-only">More Details</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in recent %}
+                  {% if r.type == 'extraction' %}
+                    <tr id="{{ forloop.counter0 }}row" class="bg-white border-b">
+                      <th scope="row" class="px-2 py-4 font-bold text-slate-900 whitespace-normal w-1/3">{{ r.name }}</th>
+                      <td class="px-2 py-4">8902</td>
+                      <td class="flex flex-row px-2 py-4">
+                        <div class="rounded-full w-5 h-3 bg-sky-500 mr-2 my-auto"></div>Extraction
+                      </td>
+                      <td class="px-2 py-4">{{ r.datestudy }}</td>
+                      <td class="px-2 py-4 text-right">
+                        <a href="{% url 'extractionStudy' r.idstudy %}" class="whitespace-nowrap font-bold text-blue-600 rounded-md -m-1 p-1 ring-2 ring-white hover:drop-shadow-lg hover:bg-slate-800 hover:ring-blue-600 transition-all">more details</a>
+                      </td>
+                    </tr>
+                  {% elif r.type == 'normalization' %}
+                  <tr id="{{ forloop.counter0 }}row" class="bg-white border-b">
+                    <th scope="row" class="px-2 py-4 font-bold text-slate-900 whitespace-normal w-1/3">{{ r.name }}</th>
+                    <td class="px-2 py-4">8902</td>
+                    <td class="flex flex-row px-2 py-4">
+                      <div class="rounded-full w-5 h-3 bg-rose-500 mr-2 my-auto"></div>Normalization
+                    </td>
+                    <td class="px-2 py-4">{{ r.datestudy }}</td>
+                    <td class="px-2 py-4 text-right">
+                      <a href="{% url 'normalizationStudy' r.idstudy %}" class="whitespace-nowrap font-bold text-blue-600 rounded-md -m-1 p-1 ring-2 ring-white hover:drop-shadow-lg hover:bg-slate-800 hover:ring-blue-600 transition-all">more details</a>
+                    </td>
+                  </tr>
+                  {% elif r.type == 'selection/reduction' %}
+                    <tr id="{{ forloop.counter0 }}row" class="bg-white border-b">
+                      <th scope="row" class="px-2 py-4 font-bold text-slate-900 whitespace-normal w-1/3">{{ r.name }}</th>
+                      <td class="px-2 py-4">8902</td>
+                      <td class="flex flex-row px-2 py-4">
+                        <div class="rounded-full w-5 h-3 bg-teal-500 mr-2 my-auto"></div>Selection/Reduction
+                      </td>
+                      <td class="px-2 py-4">{{ r.datestudy }}</td>
+                      <td class="px-2 py-4 text-right">
+                        <a href="{% url 'selredStudy' r.idstudy %}" class="whitespace-nowrap font-bold text-blue-600 rounded-md -m-1 p-1 ring-2 ring-white hover:drop-shadow-lg hover:bg-slate-800 hover:ring-blue-600 transition-all">more details</a>
+                      </td>
+                    </tr>
+                  {% elif r.type == 'classification' %}
+                    <tr id="{{ forloop.counter0 }}row" class="bg-white border-b">
+                      <th scope="row" class="px-2 py-4 font-bold text-slate-900 whitespace-normal w-1/3">{{ r.name }}</th>
+                      <td class="px-2 py-4">8902</td>
+                      <td class="flex flex-row px-2 py-4">
+                        <div class="rounded-full w-5 h-3 bg-violet-500 mr-2 my-auto"></div>Classification
+                      </td>
+                      <td class="px-2 py-4">{{ r.datestudy }}</td>
+                      <td class="px-2 py-4 text-right">
+                        <a href="{% url 'classificationStudy' r.idstudy %}" class="whitespace-nowrap font-bold text-blue-600 rounded-md -m-1 p-1 ring-2 ring-white hover:drop-shadow-lg hover:bg-slate-800 hover:ring-blue-600 transition-all">more details</a>
+                      </td>
+                    </tr>
+                  {% endif %}
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="container flex flex-col space-y-20 mx-auto my-40 px-20">
+    <div class="flex flex-row w-full space-x-8 justify-between">
+      <div class="flex flex-col text-justify">
+        <p class="text-blue-600 text-2xl font-bold">Data</p>
+        <p class="text-slate-500 text-lg">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper</p>
+      </div>
+      <div class="flex flex-row p-8 rounded-lg space-x-8 ring-4 ring-slate-900/5">
+        <div class="flex flex-col space-y-4">
+          <a href="{% url 'datav2' 'rawdata' %}" class="group block w-96 h-32 rounded-lg p-6 bg-slate-900/5 ring-4 ring-slate-900/10 shadow-lg space-y-3 mx-auto hover:bg-slate-800 hover:ring-blue-600 transition-all">
+            <div class="flex items-center space-x-3">
+              <svg class="h-6 w-6 stroke-blue-600 group-hover:stroke-white" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+              </svg>
+              <h3 class="text-slate-900 group-hover:text-white text-sm font-semibold">Data</h3>
+            </div>
+            <p class="text-slate-500 group-hover:text-white text-sm">Access data from database.</p>
+          </a>
+          <a href="{% url 'datav2' 'upload' %}" class="group block w-96 h-32 rounded-lg p-6 bg-slate-900/5 ring-4 ring-slate-900/10 shadow-lg space-y-3 mx-auto hover:bg-slate-800 hover:ring-blue-600 transition-all">
+            <div class="flex items-center space-x-3">
+              <svg class="h-6 w-6 stroke-blue-600 group-hover:stroke-white" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15M9 12l3 3m0 0l3-3m-3 3V2.25" />
+              </svg>
+              <h3 class="text-slate-900 group-hover:text-white text-sm font-semibold">New data</h3>
+            </div>
+            <p class="text-slate-500 group-hover:text-white text-sm">Upload to database a new set from a given directory.</p>
+          </a>
+        </div>
+        <div class="flex flex-row w-96 mx-auto justify-between">
+          <div class="flex flex-col rounded-lg ring-4 ring-slate-900/5 w-[45%] py-6 px-4 text-slate-900/10 items-center justify-between">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-24 h-24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            {% if npatients > 0 %}
+              <p class="text-4xl font-mono text-slate-800">{{ npatients }}</p>
+            {% else %}
+              <p class="text-4xl font-mono text-slate-800">-</p>
+            {% endif %}
+            <p class="text-slate-500">patients recorded</p>
+          </div>
+          <div class="flex flex-col rounded-lg ring-4 ring-slate-900/5 w-[45%] py-6 px-4 text-slate-900/10 items-center justify-between">
+            <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-activity">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+            {% if nevents > 0 %}
+              <p class="text-4xl font-mono text-slate-800">{{ nevents }}</p>
+            {% else %}
+              <p class="text-4xl font-mono text-slate-800">-</p>
+            {% endif %}
+            <p class="text-slate-500">events recorded</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr class="w-full mx-auto h-1 bg-slate-800/5" />
+    <div class="flex flex-row w-full space-x-8 justify-between">
+      <div class="flex flex-col text-justify">
+        <p class="text-blue-600 text-2xl font-bold">Studies</p>
+        <p class="text-slate-500 text-lg">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper</p>
+      </div>
+      <div class="flex flex-row p-8 rounded-lg space-x-8 ring-4 ring-slate-900/5">
+        <div class="flex flex-col space-y-4">
+          <a href="{% url 'datav2' 'studies' %}" class="group block w-96 h-32 rounded-lg p-6 bg-slate-900/5 ring-4 ring-slate-900/10 shadow-lg space-y-3 mx-auto hover:bg-slate-800 hover:ring-blue-600 transition-all">
+            <div class="flex items-center space-x-3">
+              <svg class="h-6 w-6 stroke-blue-600 group-hover:stroke-white" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+              </svg>
+              <h3 class="text-slate-900 group-hover:text-white text-sm font-semibold">Studies</h3>
+            </div>
+            <p class="text-slate-500 group-hover:text-white text-sm">Access the list of studies carried out.</p>
+          </a>
+          <a href="{% url 'createStudy' 0 %}" class="group block w-96 h-32 rounded-lg p-6 bg-slate-900/5 ring-4 ring-slate-900/10 shadow-lg space-y-3 mx-auto hover:bg-slate-800 hover:ring-blue-600 transition-all">
+            <div class="flex items-center space-x-3">
+              <svg class="h-6 w-6 stroke-blue-600 group-hover:stroke-white" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+              </svg>
+              <h3 class="text-slate-900 group-hover:text-white text-sm font-semibold">Create new study</h3>
+            </div>
+            <p class="text-slate-500 group-hover:text-white text-sm">Create a new study from data loaded on DB.</p>
+            <p class="text-slate-500 group-hover:text-white text-sm ml-4">Feature Extraction, Classification, etc..</p>
+          </a>
+        </div>
+        <div class="grid grid-cols-2 gap-2 mx-auto rounded-lg ring-4 ring-slate-900/5 w-96">
+          <div class="flex flex-col w-1/2 mx-auto p-6 items-center text-slate-500 justify-between">
+            <p>Total</p>
+            {% if totalstudies == 0 %}
+              <p class="text-4xl font-mono text-slate-800">-</p>
+            {% else %}
+              <p class="text-4xl font-mono text-slate-800">{{ totalstudies }}</p>
+            {% endif %}
+          </div>
+          <div class="flex flex-col w-1/2 mx-auto p-6 items-center text-slate-500 justify-between">
+            <p>Extraction</p>
+            {% if extract == 0 %}
+              <p class="text-4xl font-mono text-slate-800">-</p>
+            {% else %}
+              <p class="text-4xl font-mono text-slate-800">{{ extract }}</p>
+            {% endif %}
+          </div>
+          <div class="flex flex-col w-1/2 mx-auto p-6 items-center text-slate-500 justify-between">
+            <p>Selection</p>
+            <p>Reduction</p>
+            {% if selred == 0 %}
+              <p class="text-4xl font-mono text-slate-800">-</p>
+            {% else %}
+              <p class="text-4xl font-mono text-slate-800">{{ selred }}</p>
+            {% endif %}
+          </div>
+          <div class="flex flex-col w-1/2 mx-auto p-6 items-center text-slate-500 justify-between">
+            <p>Classification</p>
+            {% if class == 0 %}
+              <p class="text-4xl font-mono text-slate-800">-</p>
+            {% else %}
+              <p class="text-4xl font-mono text-slate-800">{{ class }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="w-full mx-auto h-1 bg-slate-800/5" />
+
+    <div class="flex flex-row w-full space-x-8 justify-between">
+      <div class="flex flex-col text-justify">
+        <p class="text-blue-600 text-2xl font-bold">External Features</p>
+        <p class="text-slate-500 text-lg">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper</p>
+      </div>
+      <div class="flex flex-row p-8 rounded-lg space-x-8 ring-4 ring-slate-900/5">
+        <div class="flex flex-col space-y-4">
+          <a href="{% url 'datav2' 'features' %}" class="group block w-96 h-32 rounded-lg p-6 bg-slate-900/5 ring-4 ring-slate-900/10 shadow-lg space-y-3 mx-auto hover:bg-slate-800 hover:ring-blue-600 transition-all">
+            <div class="flex items-center space-x-3">
+              <svg class="h-6 w-6 stroke-blue-600 group-hover:stroke-white" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+              </svg>
+              <h3 class="text-slate-900 group-hover:text-white text-sm font-semibold">External Features</h3>
+            </div>
+            <p class="text-slate-500 group-hover:text-white text-sm">Manage your External Features.</p>
+          </a>
+          <a href="{% url 'uploadFeature' %}" class="group block w-96 h-32 rounded-lg p-6 bg-slate-900/5 ring-4 ring-slate-900/10 shadow-lg space-y-3 mx-auto hover:bg-slate-800 hover:ring-blue-600 transition-all">
+            <div class="flex items-center space-x-3">
+              <svg class="h-6 w-6 stroke-blue-600 group-hover:stroke-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+              <h3 class="text-slate-900 group-hover:text-white text-sm font-semibold">Upload External Feature</h3>
+            </div>
+            <p class="text-slate-500 group-hover:text-white text-sm">Upload your own custom features to the system.</p>
+          </a>
+        </div>
+        <div class="container mx-auto rounded-lg ring-4 ring-slate-900/5 w-96 h-[17rem]">
+          {% if extfeat|length > 0 %}
+            <table id="myTableFeat" class="w-full text-xs text-slate-500">
+              <thead class="text-slate-700 uppercase bg-slate-900/5">
+                <tr class="flex">
+                  <th scope="col" class="px-2 py-3">Feature Name</th>
+                  <th scope="col" class="px-2 py-3 ml-10">Function Name</th>
+                </tr>
+              </thead>
+              <tbody class="h-[14.2rem] flex flex-col overflow-y-scroll rounded">
+                {% for f in extfeat %}
+                  <tr id="{{ forloop.counter0 }}row" class="bg-white border-b flex w-full">
+                    <th scope="row" class="px-2 py-4 font-bold text-slate-900 whitespace-normal w-1/3 text-left">{{ f.name }}</th>
+                    <td class="px-2 py-4 ml-10">{{ f.function_name }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <div class="flex flex-col w-1/2 mx-auto p-6 items-center text-slate-500 justify-between">
+              <p>External Features</p>
+              <p class="text-4xl font-mono text-slate-800">-</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+  {% comment %}
+  <section class="container mx-auto my-32 rounded-2xl space-y-20" style="
+        background-image: url({% static 'app/img/backv2.jpg' %});
+        background-attachment: fixed;
+        background-size: 100% 100%;
+    ">
+    {% endcomment %} {% comment %}
+    <section class="container mx-auto my-32 rounded-2xl space-y-20 bg-zinc-800">
+      <div id="about" class="flex flex-col mx-auto rounded-t-2xl w-full h-1/2 text-white text-center p-10">
+        <p class="font-bold text-xl mb-6">About</p>
+        <p class="w-2/3 m-auto">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper.</p>
+      </div>
+      <div id="help" class="flex flex-col mx-auto rounded-b-2xl w-full h-1/2 text-white text-center p-10">
+        <p class="font-bold text-xl mb-6">Help</p>
+        <p class="w-2/3 m-auto">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus lacinia sem, sit amet porttitor lectus auctor sit amet. Aenean in lectus sit amet augue tempor semper.</p>
+        <p class="m-auto">mail@mail.com &nbsp &nbsp | &nbsp &nbsp mail@mail.com</p>
+      </div>
+    </section>
+    {% endcomment %}
+  </section>
+{% endblock %}

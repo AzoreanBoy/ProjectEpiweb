@@ -1,0 +1,65 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block title %}EPIWEB | Post-Processing{% endblock %}
+{% block content %}
+  {# NAVBAR #}
+  {% include 'app/nav1.html' %}
+  <nav class="container w-full mx-auto my-1">
+    <ol class="flex text-xs font-bold">
+      <li>
+        <a href="{% url 'index' %}" class="align-middle text-slate-800 hover:drop-shadow-lg transition-all">Home</a>
+      </li>
+      <li>
+        <span class="text-sm text-slate-800 mx-2">&gt;</span>
+      </li>
+      <li class="align-middle font-normal text-slate-500">New Study</li>
+    </ol>
+  </nav>
+  {# TOP BUTTONS #}
+  <section class="container flex flex-row mx-auto mt-8 text-sm font-bold text-slate-900 justify-between" >
+	<div id="topbuttons" class="flex flex-row" >
+		<a href="{% url 'createStudy' 0 %}"
+		   class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5 " >
+			<p class="border-b-2 border-slate-900/5w-fit group-hover:border-blue-600 transition-all" >Feature
+				Extraction</p >
+		</a >
+		<a href="{% url 'trainTestSplit' 0 %}" id="btnNotCheckedPred"
+		   class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+			<p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >Train / Test
+				Split</p >
+		</a >
+		<a href="{% url 'createNormalizationStudy' 0 %}" id="btnNotCheckedPred"
+		   class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+			<p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >
+				Normalization</p >
+		</a >
+		<a href="{% url 'createStudySelRed' 0 %}"
+		   class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5 " >
+			<p class="border-b-2 border-slate-900/5w-fit group-hover:border-blue-600 transition-all" >Feature
+				Selection | Dimensionality Reduction</p >
+		</a >
+		<a href="{% url 'createStudyClassification' 0 %}"
+		   class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5 " >
+			<p class="border-b-2 border-slate-900/5w-fit group-hover:border-blue-600 transition-all" >Classification</p >
+		</a >
+		<a id="btnNotCheckedPred"
+		   class="mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+			<p class="border-b-2 border-blue-600 w-fit" >Post-Processing</p >
+		</a >
+	</div >
+	<button id="optionsSummary"
+			class="rounded-lg w-fit bg-slate-900/5 ring-4 ring-blue-600 text-center text-slate-800 shadow-lg p-2 hover:bg-slate-800 hover:text-white hover:shadow-xl cursor-pointer transition-all" >
+		Create Study
+	</button >
+</section >
+<hr class="container mx-auto mt-5 mb-1 h-1 bg-slate-800/5" />
+  {# MAIN #}
+  <section class="container mx-auto mt-5">
+	<div class="flex flex-row justify-between">
+	  <div class="w-1/2">
+		<h1 class="text-2xl font-bold text-slate-900">Post-Processing</h1>
+		<p class="text-sm text-slate-800">Select the post-processing techniques to apply to the data.</p>
+	  </div>
+	</div>
+  </section>
+{% endblock %}

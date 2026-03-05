@@ -1,0 +1,552 @@
+{% extends 'app/base.html' %}
+{% block content %}
+    {% comment %} NAVBAR {% endcomment %}
+    <nav class="relative container mx-auto px-6 py-2 border-b-slate-900/10 border-b-2 border-x-0">
+        <div class="flex items-center justify-between">
+            <a href="{% url 'index' %}"
+               class="text-5xl text-slate-800 font-bold font-mono">EPIWEB</a>
+            <div class="flex flex-row justify-between">
+                <p class="flex self-center text-slate-900 font-bold">{{ request.user }} |</p>
+                <div onclick="openNotFunction('notpanel')"
+                     class="self-center px-6 stroke-2 stroke-slate-900 hover:stroke-blue-600 hover:cursor-pointer transition-all">
+                    <svg id="bell" class="h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                    </svg>
+                </div>
+                {% comment %} button {% endcomment %}
+                <a href="{% url 'logoutUser' %}"
+                   class="flex rounded-xl p-2 w-fit text-slate-900 font-bold ring-4 ring-white hover:bg-slate-800 hover:text-blue-600 hover:ring-blue-600 hover:shadow-sm transition-all">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <nav class="container w-full mx-auto my-1">
+        <ol class="flex text-xs font-bold">
+            <li>
+                <a href="{% url 'index' %}"
+                   class="align-middle text-slate-800 hover:drop-shadow-lg transition-all">Home</a>
+            </li>
+            <li>
+                <span class="text-sm text-slate-800 mx-2">&gt;</span>
+            </li>
+            <li>
+                <a href="{% url 'datav2' 'studies' %}"
+                   class="align-middle text-slate-800 hover:drop-shadow-lg transition-all">Studies</a>
+            </li>
+            <li>
+                <span class="text-sm text-slate-800 mx-2">&gt;</span>
+            </li>
+            <li>
+                <a href="{% url 'extractionStudy' study.study.idstudy %}"
+                   class="align-middle text-slate-800 hover:drop-shadow-lg transition-all">Extraction Study {{ study.study.idstudy }}</a>
+            </li>
+            <li>
+                <span class="text-sm font-extrabold text-slate-800 mx-2">&gt;</span>
+            </li>
+            <li class="align-middle font-normal text-slate-500">Plot</li>
+        </ol>
+    </nav>
+    <section id="plots" class="container flex flex-row my-8 mx-auto">
+        {% comment %} SIDE BAR {% endcomment %}
+        <div class="w-1/6 sticky top-3 px-3 h-screen">
+            <div class="flex flex-col bg-slate-800 rounded-lg ring-4 ring-blue-600 font-bold shadow-lg text-white text-center py-2">
+                <p class="text-sm">Extraction Study</p>
+                <p class="text-xs font-normal">{{ study.study.idstudy }}</p>
+                <p class="text-lg text-blue-600 mt-2">{{ study.study.name }}</p>
+                <p class="text-xs font-normal mt-2">submited by {{ study.study.user.username }}</p>
+            </div>
+            <aside class="flex flex-col h-fit mt-3 rounded-lg ring-4 ring-slate-900/5 text-xs py-2 px-6 shadow-lg overflow-auto">
+                <p class="mx-auto font-bold text-sm text-slate-800 mb-5 border-b">Channels</p>
+                <div class="grid grid-cols-3">
+                    {% for c in info.2 %}
+                        <a onclick="closePlot('{{ c }}')"
+                           id="btnPlotChecked{{ c }}"
+                           class="mb-4 rounded-md ring-2 mx-auto text-center font-semibold w-2/3 text-black bg-white ring-blue-600 hover:ring-slate-900/5 hover:cursor-pointer transition-all">{{ c }}</a>
+                        <a onclick="openPlot('{{ c }}')"
+                           id="btnPlotNotChecked{{ c }}"
+                           class="hidden mb-4 rounded-md ring-2 mx-auto text-center font-semibold w-2/3 bg-white text-black ring-slate-900/5 hover:ring-blue-600 hover:cursor-pointer transition-all">{{ c }}</a>
+                    {% endfor %}
+                </div>
+                <div class="mt-4 grid grid-cols-2">
+                    <a onclick="openAllPlots()"
+                       class="rounded-md shadow-md ring-2 mx-auto text-center font-semibold w-2/3 text-slate-900 bg-white ring-slate-900/5 hover:ring-blue-600 hover:cursor-pointer transition-all">all</a>
+                    <a onclick="closeAllPlots()"
+                       class="rounded-md shadow-md ring-2 mx-auto text-center font-semibold w-2/3 text-slate-900 bg-white ring-slate-900/5 hover:ring-blue-600 hover:cursor-pointer transition-all">none</a>
+                </div>
+            </aside>
+            <aside class="flex flex-col h-fit mt-3 rounded-lg ring-4 ring-slate-900/5 text-xs py-2 px-6 shadow-lg overflow-auto">
+                <p class="mx-auto font-bold text-sm text-slate-800 mb-4 border-b">Features</p>
+                <div class="flex flex-row justify-between">
+                    <p>Jump to:</p>
+                    <div class="flex flex-col space-y-2">
+                        {% for feature in info.0 %}
+                            <a href="#{{ feature }}div" class="mx-auto font-bold text-xs rounded-lg p-1 ring-2 ring-white text-blue-600 hover:bg-slate-800 hover:ring-blue-600 transition-all">{{ feature }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </aside>
+        </div>
+        <div class="relative flex flex-col w-5/6 px-3">
+            {% comment %} TOOL BAR {% endcomment %}
+            <div class="sticky top-3 z-50">
+                <div class="flex flex-row rounded-lg shadow-lg text-xs bg-white ring-4 ring-slate-900/5 p-2 justify-between">
+                    {% comment %} WIDE VIEW {% endcomment %}
+                    <div class="flex flex-row rounded-lg shadow-md w-1/5 h-max py-2 ring-2 ring-slate-900/5 font-bold justify-between">
+                        <input class="border mx-auto my-auto border-slate-900/5 text-slate-900 text-xs rounded-lg focus:ring-blue-600 focus:border-blue-600 w-1/4 px-1"
+                               type="number"
+                               lang="en"
+                               min="0.01"
+                               step=".01"
+                               value="0.5"
+                               id="viewWindow">
+                        <a id="viewBtnNotCheckedHour"
+                           class="rounded-lg shadow-lg w-1/5 text-center mx-auto my-auto p-1 ring-2 ring-blue-600 hover:text-white hover:bg-slate-800 hover:cursor-pointer transition-all">
+                            hours
+                        </a>
+                        <a id="viewBtnCheckedHour"
+                           class="hidden rounded-lg shadow-lg w-1/5 text-center mx-auto my-auto p-1 ring-2 ring-blue-600 text-white bg-slate-800">
+                            hours
+                        </a>
+                        <a id="viewBtnNotCheckedDay"
+                           class="rounded-lg shadow-lg w-1/5 text-center mx-auto my-auto p-1 ring-2 ring-blue-600 hover:text-white hover:bg-slate-800 hover:cursor-pointer transition-all">
+                            day
+                        </a>
+                        <a id="viewBtnCheckedDay"
+                           class="hidden rounded-lg shadow-lg w-1/5 text-center mx-auto my-auto p-1 ring-2 ring-blue-600 text-white bg-slate-800">
+                            day
+                        </a>
+                        <a id="submitViewBtn"
+                           class="w-fit mx-auto my-auto stroke-slate-800 hover:stroke-blue-600 hover:cursor-pointer transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke-width="1.5"
+                                 class="w-8 h-8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12.75 15l3-3m0 0l-3-3m3 3h-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </a>
+                    </div>
+                    {% comment %} WINDOWING {% endcomment %}
+                    <div class="flex-col w-fit items-center">
+                        <div class="border-b-2 border-slate-800 text-slate-800 text-center font-bold mb-2">
+                            windowing options (seconds)
+                        </div>
+                        <div class="flex flex-row font-bold space-x-2">
+                            <p class="my-auto text-start text-slate-700">
+                                size
+                            </p>
+                            <p class="rounded-lg text-slate-900 text-center bg-slate-white ring-2 ring-slate-900/5 w-1/2 p-1 px-2">
+                                {{ study.windowsize }}
+                            </p>
+                            <p class="my-auto">
+                                |
+                            </p>
+                            <p class="my-auto text-start text-slate-700">
+                                step
+                            </p>
+                            <p class="rounded-lg text-slate-900 text-center bg-slate-white ring-2 ring-slate-900/5 w-1/2 p-1 px-2">
+                               {{ study.windowstep }}
+                            </p>
+                        </div>
+                    </div>
+                    {% comment %} TIME INTERVAL {% endcomment %}
+                    <div class="flex flex-col w-[35%]">
+                        <div class="border-b-2 border-slate-800 text-slate-800 text-center font-bold mb-2">
+                            time interval
+                        </div>
+                        <div class="flex flex-row font-bold">
+                            <p id="windowbegin"
+                               class="rounded-lg text-slate-900 text-start bg-slate-white ring-2 ring-slate-900/5 w-1/2 mx-2 p-1">
+                                {{ signaltime.0 }}
+                            </p>
+                            <p>
+                                -
+                            </p>
+                            <p id="windowend"
+                               class="rounded-lg text-slate-900 text-end bg-slate-white ring-2 ring-slate-900/5 w-1/2 mx-2 p-1">
+                                {{ signaltime|last }}
+                            </p>
+                        </div>
+                        <div id="eventsoptions"
+                             class="hidden flex-row border-t-2 border-slate-900/5 mt-2 px-2 pt-2 justify-between">
+                            <p class="font-bold text-xs my-auto">
+                                Jump to event:
+                            </p>
+                            <form type="POST"
+                                  name="timeinterval"
+                                  id="timeinterval"
+                                  class="flex flex-row space-x-4">
+                                {% csrf_token %}
+                                <select id="event"
+                                        name="event"
+                                        class="text-xs w-2/3 rounded-lg border-transparent h-7 py-0">
+                                </select>
+                                <button type="submit"
+                                        formmethod="post"
+                                        id="btn"
+                                        class="h-fit w-fit py-1 px-2 my-auto rounded-lg ring-2 ring-blue-600 font-bold text-xs text-slate-900 hover:cursor-pointer hover:text-white hover:bg-slate-800 transition-all">
+                                    GO
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% comment %} PREV NEXT {% endcomment %}
+                    <div class="flex flex-col w-1/5">
+                        <div class="border-b-2 border-slate-800 text-slate-800 text-center font-bold mb-2">
+                            window
+                        </div>
+                        <div class="flex flex-row w-full mx-auto font-bold">
+                            {% comment %} TODO quando for pedida a ultima window {% endcomment %}
+                            <a id="previousbtnBlocked"
+                               class="hidden rounded-lg shadow-lg text-start ring-2 w-1/3 mx-2 p-1 text-slate-900/5 bg-white ring-slate-900/5">&lt; previous</a>
+                            <a id="previousbtn"
+                               class="rounded-lg shadow-lg text-start w-1/3 mx-2 p-1 ring-2 ring-blue-600 font-bold text-xs text-slate-900 hover:text-white hover:bg-slate-800 hover:cursor-pointer transition-all">&lt; previous</a>
+                            <a id="nextbtn"
+                               class="rounded-lg shadow-lg text-end w-1/3 mx-2 p-1 ring-2 ring-blue-600 font-bold text-xs text-slate-900 hover:text-white hover:bg-slate-800 hover:cursor-pointer transition-all">next &gt;</a>
+                            <button onclick="openFunction()"
+                                    class="rounded-lg shadow-lg text-end w-fit mx-2 p-1 ring-2 ring-blue-600 font-bold text-xs text-slate-900 hover:text-white hover:bg-slate-800 transition-all">
+                                more
+                            </button>
+                        </div>
+                        <div id="windowoptions"
+                             class="hidden flex-col border-t-2 border-slate-900/5 mt-2 px-2 pt-2 justify-between">
+                            <form type="POST"
+                                  name="timeinterval"
+                                  id="timeinterval"
+                                  class="flex flex-row justify-between">
+                                {% csrf_token %}
+                                <input type="datetime-local"
+                                       step="1"
+                                       id="time"
+                                       name="time"
+                                       value="{{ begin }}"
+                                       min="{{ begin }}"
+                                       max="{{ close }}"
+                                       class="text-xs w-fit rounded-lg border-transparent h-7 py-0 text-center"/>
+                                <button type="submit"
+                                        formmethod="post"
+                                        id="btn"
+                                        class="h-fit w-fit py-1 px-2 my-auto rounded-lg ring-2 ring-blue-600 font-bold text-xs text-slate-900 hover:cursor-pointer hover:text-white hover:bg-slate-800 transition-all">
+                                    GO
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% comment %} PLOTS {% endcomment %}
+            <div class="flex flex-col mt-5" id="divplots">
+                {% for feature in info.0 %}
+                    <p id="{{ feature }}div" class="w-fit text-blue-600 text-xl font-bold mb-4 ml-4 rounded-lg drop-shadow-lg">{{ feature }}</p>    
+                    <div class="flex flex-col w-full p-4 rounded-lg shadow-lg ring ring-slate-900/5 mb-4 items-center">                
+                        {% comment %} ! ATENCAO A ESTA TAG (VER TAMBEM A FUNCAO GET GRAPHS) {% endcomment %}
+                        {% for option in info.1|get:forloop.counter0 %}
+                            {% for channel in info.2 %}
+                                <div id="graphnone_{{ feature }}_{{ option }}_{{ channel }}" class="w-full">
+                                </div>
+                                <div id="graphPrevious_{{ feature }}_{{ option }}_{{ channel }}" class="hidden w-full">
+                                </div>
+                                <div id="graphNext_{{ feature }}_{{ option }}_{{ channel }}" class="hidden w-full">
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+            {% comment %} LOADING SCREEN {% endcomment %}
+            <div id="loading"
+                 class="hidden absolute h-full w-full backdrop-blur-sm bg-white/30 text-center">
+                <div class="my-40">
+                    <button disabled
+                            type="button"
+                            class="text-slate-800 text-lg font-bold bg-slate-900/5 rounded-lg px-5 py-2.5 text-center mr-2 inline-flex items-center">
+                        <svg class="inline w-6 h-6 mr-3 text-slate-800 motion-safe:animate-spin"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path
+                            opacity="0.2"
+                            fill-rule="evenodd"
+                            clip-rule="evenodd"
+                            d="M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19ZM12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                            fill="currentColor"
+                            />
+                            <path
+                            d="M2 12C2 6.47715 6.47715 2 12 2V5C8.13401 5 5 8.13401 5 12H2Z"
+                            fill="currentColor"
+                            />
+                        </svg>
+                        Loading...
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock content %}
+
+{% block scripts %}
+    <script>
+        function getGraphs(signal, signalTime, filter){
+            //{% comment %} !07/06 signal.length -> info.length {% endcomment %}
+            for (let feat = 0; feat < (info[0].length); feat++) { 
+                for (let featoption = 0; featoption < (info[1][feat].length); featoption++) {
+                    for (let channel = 0; channel < (info[2].length); channel++) {   
+                        let traceColor = 'rgb(37, 99, 235)';
+                        const trace = {
+                            y: signal[feat][featoption][channel],
+                            x: signalTime,
+                            type: 'scatter',
+                            // {% comment %} ! ESTE NOME APENAS RESULTA PARA AS STATS! {% endcomment %}
+                            name: info[2][channel]+'_'+info[1][feat][featoption],
+                            line: {
+                                color: traceColor,
+                            }
+                        };                
+                        const data=[trace];
+                        const layout={
+                            showlegend: true,
+                            xaxis:{
+                                showticklabels: false,
+                                showgrid: false,
+                            },
+                            yaxis: {
+                                title: {
+                                    text: '',
+                                },
+                                showgrid: false,
+                                showticklabels: false,
+                            },
+                            height: 50,
+                            //{% comment %} TODO: COMPOR ISTO DO RESPONSIVE (O PROBLEMA ESTA EM FAZER BUILD NUMA HIDDEN DIV)  {% endcomment %}
+                            width: 1100,
+                            margin: {
+                                t: 0,
+                                b: 0,
+                                r: 0,
+                                l: 0,
+                            },
+                        }
+                        //{% comment %} ! 30/05: info[1][featoption]  ->   info[1][feat][featoption]{% endcomment %}
+                        Plotly.newPlot('graph'+filter+'_'+info[0][feat]+'_'+info[1][feat][featoption]+'_'+info[2][channel], data, layout, {displaylogo: false, responsive: true, modeBarButtonsToRemove: ['pan2d','select2d','lasso2d','zoomOut2d','zoomIn2d','zoom2d','autoscale2d']});            
+                    }  
+                }
+            }
+            processingFlag = false;
+            document.getElementById('loading').classList.add('hidden');
+        }
+        function openFunction() {
+            const navs = [document.getElementById("windowoptions"), document.getElementById("eventsoptions")];
+            navs.forEach(nav => nav.classList.toggle("flex"));
+            navs.forEach(nav => nav.classList.toggle("hidden"));
+        }        
+        function openPlot(plotchannel) {
+            const plts = document.querySelectorAll('[id*="_'+plotchannel+'"]:not([id^="graphNext"], [id^="graphPrevious"])');
+            const btnplt1 = document.getElementById("btnPlotChecked"+plotchannel);
+            const btnplt2 = document.getElementById("btnPlotNotChecked"+plotchannel);
+            plts.forEach(item => {
+                item.classList.remove('hidden');
+            });
+            btnplt1.classList.toggle("hidden");
+            btnplt2.classList.toggle("hidden");
+        }
+        function closePlot(plotchannel) {
+            const plts = document.querySelectorAll('[id*="_'+plotchannel+'"]:not([id^="graphNext"], [id^="graphPrevious"])');
+            const btnplt1 = document.getElementById("btnPlotChecked"+plotchannel);
+            const btnplt2 = document.getElementById("btnPlotNotChecked"+plotchannel);
+            plts.forEach(item => {
+                item.classList.add('hidden');
+            });
+            btnplt1.classList.toggle("hidden");
+            btnplt2.classList.toggle("hidden");
+        }
+        function openAllPlots() {
+            const pltbtns1 = document.querySelectorAll('[id*="btnPlotChecked"]');
+            pltbtns1.forEach(item => item.className = item.className.replace("hidden", ""));
+            const pltbtns2 = document.querySelectorAll('[id*="btnPlotNotChecked"]');
+            pltbtns2.forEach(item => item.classList.add('hidden'));
+            const plts = document.querySelectorAll('[id^="graphnone"]');
+            plts.forEach(item => item.classList.remove('hidden'));
+        }
+        function closeAllPlots() {
+            const pltbtns2 = document.querySelectorAll('[id*="btnPlotNotChecked"]');
+            pltbtns2.forEach(item => item.className = item.className.replace("hidden", ""));
+            const pltbtns1 = document.querySelectorAll('[id*="btnPlotChecked"]');
+            pltbtns1.forEach(item => item.classList.add('hidden'));
+            const plts = document.querySelectorAll('[id^="graph"]');
+            plts.forEach(item => item.classList.add('hidden'));
+        }        
+        function setViewElems(option) {
+            document.getElementById('viewBtnChecked'+option).classList.remove('hidden');
+            document.getElementById('viewBtnNotChecked'+option).classList.add('hidden');
+            document.querySelectorAll('[id^="viewBtnChecked"]:not([id^="viewBtnChecked' + option + '"])').forEach(item => item.classList.add('hidden'));
+            document.querySelectorAll('[id^="viewBtnNotChecked"]:not([id^="viewBtnNotChecked' + option + '"])').forEach(item => item.classList.remove('hidden'));
+            viewSelected = option;
+        }
+        function changeWindowView(){
+            const steps={'Hour': 60, 'Day': 1440};
+            const view = viewSelected;
+            if (processingFlag) {
+                alert('Previous request is still processing.');
+                return;
+            }
+            processingFlag = true;
+            document.getElementById('loading').classList.remove('hidden');
+            const url = "{% url 'plotFeatureAsync' study.study.idstudy %}";
+            const viewWindow = document.getElementById('viewWindow').value;
+            const newStep = steps[view]*viewWindow;
+            const startNewWindow = actualTime[0].split('.')[0];
+            $.ajax({        
+                url: url,        
+                type: "POST",
+                data:{
+                    'option': 'changing',
+                    'time': startNewWindow,
+                    'step': newStep,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                datatype:'json',
+                success: function(data) {
+                    getGraphs(data.signal, data.signaltime, 'none');
+                    actualStep = newStep;
+                    actualSignal = data.signal;
+                    actualTime = data.signaltime;
+                    actualWindow = data.window;
+                    setPreviousBtn();
+                    document.getElementById('windowbegin').innerHTML = actualTime[0];
+                    document.getElementById('windowend').innerHTML = actualTime.slice(-1);
+                    getPreviousNextPlot('both');
+                    openAllPlots();
+                }
+            }); 
+        }    
+        {% comment %} TODO: THE SAME THING TO NEXT BUTTON {% endcomment %}
+        function setPreviousBtn() {
+            if (actualWindow == 0){
+                document.getElementById("previousbtnBlocked").classList.remove("hidden");
+                document.getElementById("previousbtn").classList.add("hidden");
+            } else {
+                document.getElementById("previousbtnBlocked").classList.add("hidden");
+                document.getElementById("previousbtn").classList.remove("hidden");
+            }
+        }
+        function previousPlot() {
+            showPreviousNextPlot('Previous');
+        }
+        function nextPlot() {
+            showPreviousNextPlot('Next');
+        }
+        function getPreviousNextPlot(option) {
+            processingFlag = true;
+            console.log('\n', option, '\ncurrent window: ', actualWindow,' beginTime: ', actualTime[0]);
+            const url = "{% url 'plotFeatureAsync' study.study.idstudy %}";
+            const windows = (option == 'both') ? ([actualWindow-1, actualWindow+1]) : ((option == 'Previous') ? ([actualWindow-1]) : ([actualWindow+1]));
+            windows.forEach(function (win, index) {
+                console.log('processing window: ', win)
+                $.ajax({        
+                    url: url,        
+                    type: "POST",
+                    data:{
+                        'window': win, 
+                        'step': actualStep, 
+                        'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                    },
+                    datatype:'json',
+                    success: function(data) {
+                        signal = data.signal;
+                        signalTime = data.signaltime;
+                        if (option == 'both' && index==0) {
+                            previousSignal = data.signal;
+                            previousTime = data.signaltime;
+                            getGraphs(signal, signalTime, 'Previous');
+                        } else if (option == 'both' && index==1) {
+                            nextSignal = data.signal;
+                            nextTime = data.signaltime;
+                            getGraphs(signal, signalTime, 'Next');
+                        } else if (option == 'Previous') {
+                            previousSignal = data.signal;
+                            previousTime = data.signaltime;
+                            getGraphs(signal, signalTime, option); 
+                        } else {
+                            nextSignal = data.signal;
+                            nextTime = data.signaltime;
+                            getGraphs(signal, signalTime, option);
+                        }
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                      alert(xhr.status);
+                      alert(thrownError);
+                    }
+                });   
+            });
+        };
+        function showPreviousNextPlot(window) {
+            if (processingFlag) {
+                document.getElementById('loading').classList.remove('hidden');
+                return;
+            }
+            if (window == "Previous") {
+                actualWindow = actualWindow-1;
+                nextSignal = actualSignal;
+                actualSignal = previousSignal;
+                nextTime = actualTime;
+                actualTime = previousTime;
+                for (let index = 0; index < (graphs.length); index++) {
+                    const nextDiv = $('#graphNext'+graphs[index]);
+                    const previousDiv = $('#graphPrevious'+graphs[index]);
+                    const noneDiv = $('#graphnone'+graphs[index]);
+                    previousDiv.attr('id','graphnone'+graphs[index]);
+                    noneDiv.attr('id','graphNext'+graphs[index]);
+                    nextDiv.attr('id','graphPrevious'+graphs[index]);
+                    nextDiv.innerHTML='';
+                }
+            } else {
+                actualWindow = actualWindow+1;
+                previousSignal = actualSignal;
+                actualSignal = nextSignal;
+                previousTime = actualTime;
+                actualTime = nextTime;
+                for (let index = 0; index < (graphs.length); index++) {
+                    const nextDiv = $('#graphNext'+graphs[index]);
+                    const previousDiv = $('#graphPrevious'+graphs[index]);
+                    const noneDiv = $('#graphnone'+graphs[index]);
+                    nextDiv.attr('id','graphnone'+graphs[index]);
+                    noneDiv.attr('id','graphPrevious'+graphs[index]);
+                    previousDiv.attr('id','graphNext'+graphs[index]);
+                    previousDiv.innerHTML='';
+                }
+            }
+            setPreviousBtn();
+            closeAllPlots();
+            document.getElementById('windowbegin').innerHTML = actualTime[0];
+            document.getElementById('windowend').innerHTML = actualTime.slice(-1);
+            openAllPlots();
+            getPreviousNextPlot(window);
+        }; 
+        window.addEventListener("load", (event) => {
+            info={{ info|safe }};
+            graphs = Array.from(document.querySelectorAll('[id^="graphnone"]')).map(function(item){ return item.id.replace('graphnone', ''); });
+            actualSignal = {{signal|safe}};
+            actualTime = {{signaltime|safe}};
+            actualWindow = {{ window }};
+            actualStep = {{ step }}; 
+            getGraphs(actualSignal, actualTime, "none");
+            viewSelected = 'Hour';
+            setViewElems('Hour');
+            setPreviousBtn();
+            getPreviousNextPlot('both');
+        });
+        const viewBtns = document.querySelectorAll('[id^="viewBtnNotChecked"]');
+        viewBtns.forEach(function(elem) {
+            elem.addEventListener("click", (event) => {
+                const view = elem.id.replace('viewBtnNotChecked','');
+                setViewElems(view);
+            });
+        });
+        $("#submitViewBtn").click(changeWindowView);
+        $("#nextbtn").click(nextPlot);
+        $("#previousbtn").click(previousPlot);
+    </script>
+{% endblock scripts %}
+        {% comment %} * HOW TO KNOW WHAT GRAPH WE ARE STUDYING {% endcomment %}
+        const graphid = document.getElementById('graphnone_0_1_2').id;
+        let graphinfo = graphid.split("_").slice(1,4).map(function(item){ return parseInt(item); });
+

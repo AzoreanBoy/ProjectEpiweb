@@ -1,0 +1,553 @@
+{% extends "app/base.html" %}
+{% load app_extras %}
+{% load static %}
+{% block title %} EPIWEB | Train/Test Split {% endblock %}
+{% block content %}
+    <!-- NAVIGATION BARS -->
+    {% include "app/nav1.html" %}
+    <nav class="container w-full mx-auto my-1" >
+        <ol class="flex text-xs font-bold" >
+            <li >
+                <a href="{% url 'index' %}"
+                   class="align-middle text-slate-800 hover:drop-shadow-lg transition-all" >Home</a >
+            </li >
+            <li >
+                <span class="text-sm text-slate-800 mx-2" >&gt;</span >
+            </li >
+            <li class="align-middle font-normal text-slate-500" >Train/Test Split</li >
+        </ol >
+    </nav >
+
+    <!-- TOP BUTTONS -->
+    <section class="container flex flex-row mx-auto mt-8 text-sm font-bold text-slate-900 justify-between" >
+        <div class="flex flex-row" >
+            <a href="{% url 'createStudy' 0 %}" id="btnNotCheckedPred"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >Feature
+                    Extraction</p >
+            </a >
+            <a id="btnCheckedFeatExt"
+               class="mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-blue-600 w-fit" >Train / Test
+                    Split</p >
+            </a >
+            <a href="{% url 'createNormalizationStudy' 0 %}" id="btnNotCheckedPred"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >
+                    Normalization</p >
+            </a >
+            <a href="{% url 'createStudySelRed' 0 %}" id="btnNotCheckedPred"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >Feature
+                    Selection | Dimensionality Reduction</p >
+            </a >
+            <a href="{% url 'createStudyClassification' 0 %}" id="btnNotCheckedPred"
+               class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5" >
+                <p class="border-b-2 border-slate-900/5 w-fit group-hover:border-blue-600 transition-all" >
+                    Classification</p >
+            </a >
+            {% comment "" %}
+            <a href="{% url 'PostProcessingStudy' 0 %}"
+            class="group mx-3 rounded-lg shadow-lg p-2 ring-4 ring-slate-900/5 " >
+            <p class="border-b-2 border-slate-900/5w-fit group-hover:border-blue-600 transition-all" >Post-Processing</p >
+        </a >
+        {% endcomment %}
+        </div >
+        <button id="optionsSummary"
+                class="rounded-lg w-fit bg-slate-900/5 ring-4 ring-blue-600 text-center text-slate-800 shadow-lg p-2 hover:bg-slate-800 hover:text-white hover:shadow-xl cursor-pointer transition-all" >
+            Split Data
+        </button >
+    </section >
+    <hr class="container mx-auto mt-5 mb-1 h-1 bg-slate-800/5" />
+
+    <!-- MAIN SECTION -->
+    <section class="container relative flex flex-col h-screen mx-auto py-2" >
+        <!-- TOP SECTION -->
+        <div class="flex flex-row h-1/4" >
+            <!-- DATASET SELECTION -->
+            <div class="flex flex-col bg-slate-900/5 shadow-lg rounded-lg w-3/4 ring-4 m-2 ring-slate-900/5" >
+                <p class="text-sm text-slate-800 font-bold py-2 px-4" >Select a dataset:</p >
+                <div class="overflow-auto px-4 py-2 flex flex-col" >
+                    <form >
+                        {% csrf_token %}
+                        {% for feat in studies %}
+                            {% if feat.idstudy == studyId %}
+                                <div class="flex items-center pl-4 border border-slate-900/5 mb-1 rounded-lg" >
+                                    <input checked
+                                           id="{{ feat.idstudy }}featradio"
+                                           type="radio"
+                                           value="{{ feat.idstudy }}"
+                                           name="studiesradio"
+                                           class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                                    <label for="{{ feat.idstudy }}featradio"
+                                           class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >#{{ feat.idstudy }} {{ feat.name }}</label >
+                                </div >
+                            {% else %}
+                                <div class="flex items-center pl-4 border border-slate-900/5 mb-1 rounded-lg" >
+                                    <input id="{{ feat.idstudy }}featradio"
+                                           type="radio"
+                                           value="{{ feat.idstudy }}"
+                                           name="studiesradio"
+                                           class="w-4 h-4 text-blue-600 bg-white border-slate-900/5 focus:ring-blue-500" />
+                                    <label for="{{ feat.idstudy }}featradio"
+                                           class="w-full py-2 ml-2 text-xs font-bold text-slate-900" >#{{ feat.idstudy }} {{ feat.name }}</label >
+                                </div >
+                            {% endif %}
+                        {% endfor %}
+                    </form >
+                </div >
+            </div >
+            <!-- PREVIOUS STUDIES -->
+            <div class="flex flex-col w-1/4 rounded-lg m-2 py-2 px-4 border-b-2" >
+                <p class="text-sm text-slate-800 font-bold mb-2" >Already Splited:</p >
+                <div class="h-1/8 overflow-auto -mx-4 px-4" >
+                    <table class="w-full text-xs text-left text-slate-500" >
+                        <tbody >
+                        <tr class="border-b" >
+                            <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                Train Samples
+                            </th >
+                            <td id="trainsamples" class="px-4" >
+                                {{ splitpoint|safe }}
+                            </td >
+                        </tr >
+                        <tr class="border-b" >
+                            <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                Test Samples
+                            </th >
+                            <td id="testsamples" class="px-4" >
+                                {{ targets|calculate_difference:splitpoint }}
+                            </td >
+                        </tr >
+                        </tbody >
+                    </table >
+                </div >
+            </div >
+        </div >
+        <!-- BOTTOM SECTION -->
+        <div class="relative flex flex-row h-3/4" >
+            <!-- TRAIN TEST SPLIT SELECTION -->
+            <div class="relative flex flex-col bg-slate-900/5 max-h-full space-y-2 w-3/4 shadow-lg rounded-lg ring-4 m-2 py-2 px-4 ring-slate-900/5 overflow-auto" >
+                <p class="text-sm text-slate-800 font-bold mb-2" >Train Test Split</p >
+                <label for="timeslider" class="text-xs" >Choose the Point where you want to split the data into train
+                    and test. Use the
+                    following slider to update the point.</label >
+                <input type="range" name="timeslider" id="timeslider" min="1" max="{{ times|length }}" value="200"
+                       class="accent-[#0261F9] m-2" onchange="updateGraph(this.value-1)"
+                       oninput="updateGraph(this.value-1)" >
+                <div id="traintestgraph" class="w-full h-full" ></div >
+            </div >
+            <!-- PATIENT FAST DETAILS AND HELP SECTION -->
+            <div class="relative flex flex-col h-full w-1/4 mr-4" >
+                <!-- INFOS -->
+                <div class="flex flex-col h-1/2 w-full rounded-lg m-2 py-2 px-4 border-b-2 overflow-auto" >
+                    <p class="text-sm text-slate-800 font-bold mb-2" >
+                        Feature Extraction Study
+                    </p >
+                    <div class="h-[70%] overflow-auto -mx-4 px-4" >
+                        <table class="w-full text-xs text-left text-slate-500" >
+                            <tbody >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                    ID
+                                </th >
+                                <td id="sid" class="px-4" >
+                                    {{ studyId }}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                    Channels
+                                </th >
+                                <td id="schannels" class="px-4" >
+                                    {{ schannels }}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                    Features Group
+                                </th >
+                                <td id="sfeatures" class="px-4" >
+                                    {{ sfeatures }}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                    Filter
+                                </th >
+                                <td id="sfilter" class="px-4" >
+                                    {{ sfilter }}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                    Window Size
+                                </th >
+                                <td id="swindowsize" class="px-4" >
+                                    {{ swindowsize }}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                    Window Step
+                                </th >
+                                <td id="swindowstep" class="px-4" >
+                                    {{ swindowstep }}
+                                </td >
+                            </tr >
+                            <tr class="border-b" >
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                    Number of Samples
+                                </th >
+                                <td id="snsamples" class="px-4" >
+                                    {{ snsamples }}
+                                </td >
+                            </tr >
+                            <tr >
+                                <th scope="row" class="px-4 py-1 font-bold text-slate-900" >
+                                    Number of Features
+                                </th >
+                                <td id="snfeatures" class="px-4" >
+                                    {{ snfeatures }}
+                                </td >
+                            </tr >
+                            </tbody >
+                        </table >
+                    </div >
+                    <a href="{% url 'extractionStudy' studyId %}"
+                       id="detailsBtn"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="flex flex-row group mt-auto ml-auto mb-1 rounded-lg ring-2 ring-blue-600 hover:bg-slate-800 hover:shadow-md p-1 items-center transition-all" >
+                        <div class="font-bold text-xs items-center group-hover:text-white transition-all" >
+                            more details
+                        </div >
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="1.5"
+                             class="ml-2 w-4 h-4 stroke-blue-600 group-hover:stroke-white transition-all" >
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                        </svg >
+                    </a >
+
+
+                </div >
+                <!-- HELP -->
+                <div id="featHelp"
+                     class="hidden absolute flex-col h-[97%] w-full rounded-lg shadow-lg m-2 py-2 px-4 bg-slate-900/5 backdrop-blur-md ring-4 ring-slate-900/5 overflow-auto transition-opacity" >
+                    <p class="text-xs text-slate-700 font-bold ml-auto mb-2" >
+                        Help
+                    </p >
+                    <p id="featureDetailsLabel"
+                       class="text-sm text-slate-700 font-bold mb-2" >
+                        Feature
+                    </p >
+                    <div class="text-slate-900 overflow-auto -mx-4 px-4" >
+                        <p id="featureDetails" class="text-justify text-xs" >
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc non lectus in sapien auctor
+                            bibendum. Phasellus tortor leo, porttitor at ligula non, volutpat faucibus orci. Sed nisl
+                            enim, convallis malesuada nisl vitae, pellentesque accumsan tortor. Vivamus consectetur dui
+                            gravida, sollicitudin est sit amet, volutpat orci. Fusce placerat ex quis nibh congue, et
+                            dignissim tortor dignissim. Integer eros tortor, accumsan et facilisis sed, fringilla luctus
+                            nibh. Nam fringilla scelerisque tellus, nec malesuada ipsum molestie eget. Nulla sed commodo
+                            turpis. Praesent congue congue aliquet. Proin efficitur, nibh a pellentesque convallis, quam
+                            ex tempus nisi, sed fringilla tortor metus volutpat nibh. Pellentesque ut iaculis ex. Nunc
+                            egestas neque eu feugiat mattis. Proin dignissim metus ac ante pulvinar elementum. Morbi
+                            tempor mauris vel tortor rutrum, sed facilisis sem elementum. Nulla lectus elit, maximus in
+                            porta feugiat, sodales sed lacus.
+                            <img src="{% static 'app/img/windowing.png' %}" class="w-full" />
+                        </p >
+                    </div >
+                </div >
+            </div >
+            <!-- NOTHING PANEL -->
+            <div id="paneloptionsFlag"
+                 class="hidden absolute w-3/4 h-full backdrop-blur-[3px] bg-white/30" >
+                <div class="flex flex-col justify-evenly rounded-lg ring-4 ring-slate-900/5 w-1/2 mx-auto my-28 p-4 font-bold text-center" >
+                    <p >Something went wrong.<br >The file is missing, so there's no chance on creating a study.</p >
+                </div >
+            </div >
+            <!-- LOADING SCREEN-->
+            <div id="loading"
+                 class="hidden absolute h-full w-3/4 backdrop-blur-sm bg-white/30 text-center" >
+                <div class="my-40" >
+                    <button disabled
+                            type="button"
+                            class="text-slate-800 text-lg font-bold bg-slate-900/5 rounded-lg px-5 py-2.5 text-center mr-2 inline-flex items-center" >
+                        <svg class="inline w-6 h-6 mr-3 text-slate-800 motion-safe:animate-spin"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             xmlns="http://www.w3.org/2000/svg" >
+                            <path
+                                    opacity="0.2"
+                                    fill-rule="evenodd"
+                                    clip-rule="evenodd"
+                                    d="M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19ZM12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                                    fill="currentColor"
+                            />
+                            <path
+                                    d="M2 12C2 6.47715 6.47715 2 12 2V5C8.13401 5 5 8.13401 5 12H2Z"
+                                    fill="currentColor"
+                            />
+                        </svg >
+                        Loading...
+                    </button >
+                </div >
+            </div >
+        </div >
+    </section >
+{% endblock %}
+
+{% block scripts %}
+    <script >
+        // VARIABLES
+        var previousSplit = {{ splitpoint|safe }};
+        var tempo = {{ times|safe }};
+        var target = {{ targets|safe }};
+        var tempo_target_0 = {{ times_target_0|safe }};
+        var tempo_target_1 = {{ times_target_1|safe }};
+        var tempo_target_2 = {{ times_target_2|safe }};
+        var tempo_target_3 = {{ times_target_3|safe }};
+
+        // GRAPH FUNCTION
+        function updateGraph(value) {
+            // Define traces
+            var trace0 = {
+                x: tempo_target_0,
+                y: Array(tempo_target_0.length).fill(0),
+                mode: 'markers',
+                hoverinfo: 'name',
+                marker: {
+                    color: 'blue',
+                    size: 7
+                },
+                name: 'Non-Ictal Interval'
+            };
+            var trace1 = {
+                x: tempo_target_1,
+                y: Array(tempo_target_1.length).fill(0),
+                mode: 'markers',
+                hoverinfo: "name",
+                marker: {
+                    color: 'red',
+                    size: 7
+                },
+                name: 'SOP Interval'
+            };
+            var trace2 = {
+                x: tempo_target_2,
+                y: Array(tempo_target_2.length).fill(0),
+                mode: 'markers',
+                hoverinfo: "name",
+                marker: {
+                    color: 'green',
+                    size: 7
+                },
+                name: 'SPH Interval'
+            };
+            var trace3 = {
+                x: tempo_target_3,
+                y: Array(tempo_target_3.length).fill(0),
+                mode: 'markers',
+                hoverinfo: "name",
+                marker: {
+                    color: 'yellow',
+                    size: 7
+                },
+                name: 'Seizure'
+            };
+            var layout = {
+                showlegend: true,
+                legend: {
+                    x: 0.9,
+                    xanchor: 'right',
+                    y: 0.95
+                },
+                xaxis: {
+                    showticklabels: false,
+                    showgrid: false,
+                    showline: false,
+                    minValue: (tempo[0] - 10),
+                    maxValue: (tempo[tempo.length - 1] + 10),
+                },
+                yaxis: {
+                    title: {
+                        text: '',
+                    },
+                    showgrid: false,
+                    showticklabels: false,
+                    showline: false,
+                    range: [-0.05, 0.05],
+                },
+                height: 400,
+                margin: {
+                    t: 0,
+                    b: 0,
+                    r: 0,
+                    l: 0,
+                },
+                shapes: [
+                    {
+                        type: 'line',
+                        x0: tempo[value],
+                        y0: -0.1,
+                        x1: tempo[value],
+                        y1: 0.1,
+                        line: {
+                            color: 'black',
+                            width: 2,
+                            dash: 'line'
+                        }
+                    }
+                ],
+            };
+
+            // Plot the graph
+            Plotly.newPlot('traintestgraph', [trace0, trace1, trace2, trace3], layout, {
+                displaylogo: false,
+                responsive: false,
+                modeBarButtonsToRemove: ['pan2d', 'select2d', 'lasso2d', 'zoomOut2d', 'zoomIn2d', 'zoom2d', 'autoscale2d']
+            })
+        }
+
+        // INITIALIZE GRAPH
+        window.addEventListener("load", (event) => {
+            if (!isNaN(previousSplit)) {
+                $('#timeslider').val(previousSplit);
+                updateGraph(previousSplit);
+            } else {
+                updateGraph(200);
+            }
+        });
+
+        // STUDY SELECTION
+        $("input[name='studiesradio']").on('change', function () {
+            const studyid = $('input[name="studiesradio"]:checked').val();
+
+            // UPDATE STUDY INFOS TABLE
+            $('#traintestgraph').empty();
+            $('#studiesTable').find('tbody').empty();
+            $('#nothingpanel').addClass('hidden');
+            $('#paneloptionsFlag').addClass('hidden');
+            $('#loading').removeClass('hidden');
+
+            let url = "{{ request.path }}";
+            $.ajax({
+                url: url,
+                type: "POST",
+                data: {
+                    'studyId': studyid,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                },
+                datatype: 'json',
+                success: function (data) {
+                    // UPDATE STUDY INFOS
+                    $('#sid').text(data.studyId);
+                    $('#schannels').text(data.schannels);
+                    $('#sfeatures').text(data.sfeatures);
+                    $('#sfilter').text(data.sfilter);
+                    $('#swindowsize').text(data.swindowsize);
+                    $('#swindowstep').text(data.swindowstep);
+                    $('#snsamples').text(data.snsamples);
+                    $('#snfeatures').text(data.snfeatures);
+                    $('#loading').addClass('hidden');
+
+                    // UPDATE VARIABLES
+                    tempo = data.times;
+                    target = data.targets;
+
+                    $('#timeslider').attr('max', tempo.length);
+
+                    tempo_target_0 = data.times_target_0;
+                    tempo_target_1 = data.times_target_1
+                    tempo_target_2 = data.times_target_2
+                    tempo_target_3 = data.times_target_3
+
+                    // UPDATE PREVIOUS SPLIT POINT
+                    previousSplit = data.splitpoint;
+
+                    if (!isNaN(previousSplit)){
+                        $('#timeslider').val(previousSplit);
+                        updateGraph(previousSplit);
+                    } else {
+                        $('#timeslider').val(300);
+                        updateGraph(300);
+                    }
+
+                    // UPDATE PREVIOUS SPLIT POINT
+                    $('#trainsamples').text(data.splitpoint);
+                    $('#testsamples').text(data.targets.length - data.splitpoint);
+                },
+                error: function (data) {
+                    $('#loading').addClass('hidden');
+                    $('#paneloptionsFlag').removeClass('hidden');
+                }
+            });
+        });
+
+        $('#optionsSummary').on('click', function () {
+            let splitpoint = parseInt($('#timeslider').val());
+            if (previousSplit === splitpoint) {
+                if (confirm('You have already selected this split point. Do you want to continue?')){
+                    window.location.href = "{% url 'index' %}";
+                }
+            } else if (!isNaN(previousSplit)) {
+                var confirmed = confirm('You have already selected a split point for this study. Do you want to change it?');
+                if (confirmed) {
+                    if (target[splitpoint] === 0) {
+                        $.ajax({
+                            url: "{% url 'trainTestSplit' 0 %}",
+                            type: "POST",
+                            data: {
+                                'study': $('input[name="studiesradio"]:checked').val(),
+                                'splitpoint': splitpoint,
+                                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                            },
+                            datatype: 'json',
+                            success: function (data) {
+                                if (data.status === 'success') {
+                                    window.location.href = "{% url 'index' %}";
+                                }
+                            },
+                            error: function (data) {
+                                alert('Error');
+                            }
+                        });
+                    } else {
+                        alert('Invalid point. You can only split on non-ictal intervals.');
+                    }
+                }
+            } else {
+                if (target[splitpoint] === 0) {
+                    var split = confirm("Are you sure you want to split the data on this point?");
+                    if (split) {
+                        $.ajax({
+                            url: "{% url 'trainTestSplit' 0 %}",
+                            type: "POST",
+                            data: {
+                                'study': $('input[name="studiesradio"]:checked').val(),
+                                'splitpoint': splitpoint,
+                                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                            },
+                            datatype: 'json',
+                            success: function (data) {
+                                if (data.status === 'success') {
+                                    window.location.href = "{% url 'index' %}";
+                                }
+                            },
+                            error: function (data) {
+                                alert('Error');
+                            }
+                        });
+                    }
+                } else {
+                    alert('Invalid point. You can only split on non-ictal intervals.');
+                }
+            }
+
+        });
+
+    </script >
+{% endblock %}
