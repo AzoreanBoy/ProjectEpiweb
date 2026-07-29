@@ -19,8 +19,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from .env (development only)
 try:
     from dotenv import load_dotenv
-
-    load_dotenv(BASE_DIR / ".env")
+    load_dotenv(dotenv_path=str(BASE_DIR / ".env"))
+    # print("DEBUG SECRET:", os.getenv("DJANGO_SECRET_KEY"))
+    # print("DotEnv")
 except Exception:
     pass
 
@@ -29,7 +30,7 @@ except Exception:
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
     raise RuntimeError("DJANGO_SECRET_KEY is not set")
 
